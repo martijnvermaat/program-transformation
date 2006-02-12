@@ -1,0 +1,4 @@
+not (exists a:
+       Man(a) /\ Woman(a))
+/\
+P <-> not(forall A: A \/ B)

@@ -182,12 +182,20 @@ test Exists over predicate with 2 arguments
     "exists A(a,b): A" fails
 
 test Negated forall
-    "not forall A: A" ->
+    "not (forall A: A)" ->
         Not(Forall("A",Pred("A")))
 
 test Negated exists
-    "not exists A: A" ->
+    "not (exists A: A)" ->
         Not(Exists("A",Pred("A")))
+
+test Forall as righthand side
+    "P /\ (forall A: A)" ->
+        And(Pred("P"),Forall("A",Pred("A")))
+
+test Exists as righthand side
+    "P /\ (exists A: A)" ->
+        And(Pred("P"),Exists("A",Pred("A")))
 
 test Forall with negated body
     "forall A: not A" ->
@@ -321,25 +329,16 @@ test No whitespace between equivalence of predicates
 
 
 test Complex 1
-    "not (exists a : Man(a) /\ Woman(a))" ->
-        Not(
-            Exists("a", And(Pred("Man",Varlist(["a"])),Pred("Woman",Varlist(["a"]))))
-        )
-
-test Complex 2
-    "forall A : forall B : not(A /\ B) <-> (not A \/ not B)" ->
-        Forall("A",
-            Forall("B",
-                Equiv(
-                    Not(And(Pred("A"),Pred("B"))),
-                    Or(Not(Pred("A")),Not(Pred("B")))
-                )
-            )
-        )
-
-
-test Complex 1
     file complex1.plf succeeds
 
 test Complex 2
     file complex2.plf succeeds
+
+test Complex 3
+    file complex3.plf succeeds
+
+test Complex 4
+    file complex4.plf succeeds
+
+test Complex 5
+    file complex5.plf succeeds

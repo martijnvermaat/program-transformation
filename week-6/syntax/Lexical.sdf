@@ -27,6 +27,6 @@ exports
 
   lexical restrictions
 
-    "not"   -/- [A-Za-z]
-    "true"  -/- [A-Za-z]
-    "false" -/- [A-Za-z]
+    "not"     -/- [A-Za-z]
+    "true"    -/- [A-Za-z]
+    "false"   -/- [A-Za-z]
