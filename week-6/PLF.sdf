@@ -1,4 +1,4 @@
-module Logic
+module PLF
 
 imports
   Lexical
