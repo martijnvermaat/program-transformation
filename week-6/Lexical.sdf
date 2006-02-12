@@ -1,0 +1,32 @@
+%% Lexical syntax for predicate logica formulas
+%%
+%% Variables begin with a lowercase letter
+%% Predicates begin with an uppercase letter
+
+module Lexical
+
+exports
+
+  sorts Var Pred Constant
+
+  lexical syntax
+
+    [a-z][A-Za-z0-9]*    -> Var
+    [A-Z][A-Za-z0-9]*    -> Pred
+
+    "true"               -> Constant
+    "false"              -> Constant
+
+    [\ \t\r\n]           -> LAYOUT
+
+    "true"               -> Var {reject}
+    "false"              -> Var {reject}
+    "not"                -> Var {reject}
+    "forall"             -> Var {reject}
+    "exists"             -> Var {reject}
+
+  lexical restrictions
+
+    "not"   -/- [A-Za-z]
+    "true"  -/- [A-Za-z]
+    "false" -/- [A-Za-z]

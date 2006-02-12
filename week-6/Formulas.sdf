@@ -1,0 +1,54 @@
+%% Context-free syntax for predicate logic formulas
+%%
+%% Nullary predicates can be written as P or P()
+%% Quantification can be done over variables and predicates
+
+module Formulas
+
+imports
+  Lexical
+
+
+exports
+
+  sorts Form VarList
+
+  context-free syntax
+
+    Pred                         -> Form {cons("Pred")}
+    Pred "(" VarList ")"         -> Form {cons("Pred")}
+
+    {Var ","}*                   -> VarList
+
+    Constant                     -> Form {cons("Constant")}
+    "not" Form                   -> Form {cons("Not")}
+    Form "/\\" Form              -> Form {left, cons("And")}
+    Form "\\/" Form              -> Form {left, cons("Or")}
+    Form "<->" Form              -> Form {left, cons("Equiv")}
+
+    "forall" Var ":" Form        -> Form {cons("Forall")}
+    "exists" Var ":" Form        -> Form {cons("Exists")}
+    "forall" Pred ":" Form       -> Form {cons("Forall")}
+    "exists" Pred ":" Form       -> Form {cons("Exists")}
+
+    "(" Form ")"                 -> Form {bracket}
+
+  context-free priorities
+
+    "not" Form                   -> Form
+    >
+    {left:
+      Form "/\\" Form            -> Form
+      Form "\\/" Form            -> Form
+    }
+    >
+    {left:
+      Form "<->" Form            -> Form
+    }
+    >
+    {
+      "forall" Var ":" Form      -> Form
+      "exists" Var ":" Form      -> Form
+      "forall" Pred ":" Form     -> Form
+      "exists" Pred ":" Form     -> Form
+    }

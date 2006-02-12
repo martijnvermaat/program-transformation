@@ -1,0 +1,322 @@
+testsuite Formulas
+topsort Form
+
+
+test Empty formula
+    [] fails
+
+test Simple variable
+    "a" fails
+
+test Simple variable
+    "zo9Hi" fails
+
+
+test Boolean constant
+    "true" ->
+        Constant("true")
+
+test Boolean constant
+    "false" ->
+        Constant("false")
+
+test Simple predicate
+    "P" ->
+        Pred("P")
+
+test Simple predicate
+    "Q89hoP" ->
+        Pred("Q89hoP")
+
+test Simple predicate with 0 arguments
+    "P()" ->
+        Pred("P", [])
+
+test Simple predicate with 0 arguments
+    "Q89hoP()" ->
+        Pred("Q89hoP", [])
+
+test Simple predicate with 1 argument
+    "P(abc)" ->
+        Pred("P", ["abc"])
+
+test Simple predicate with 1 argument
+    "Q89hoP(z)" ->
+        Pred("Q89hoP", ["z"])
+
+test Simple predicate with 3 arguments
+    "P(a,b,c)" ->
+        Pred("P", ["a","b","c"])
+
+test Predicate as argument
+    "P(Q)" fails
+
+test Constant as argument
+    "P(true)" fails
+
+test Arguments without predicate
+    "(a,b,c)" fails
+
+test Connectives between arguments
+    "P(not a)" fails
+
+test Connectives between arguments
+    "P(a /\ b)" fails
+
+
+test Not operator
+    "not P" ->
+        Not(Pred("P"))
+
+test Not operator
+    "not true" ->
+        Not(Constant("true"))
+
+test And operator
+    "P /\ Q" ->
+        And(Pred("P"),Pred("Q"))
+
+test Or operator
+    "P \/ Q" ->
+        Or(Pred("P"),Pred("Q"))
+
+test Equiv operator
+    "P <-> Q" ->
+        Equiv(Pred("P"),Pred("Q"))
+
+test Not/and priority
+    "not P \/ Q" ->
+        Or(Not(Pred("P")),Pred("Q"))
+
+test Not/or priority
+    "not P /\ Q" ->
+        And(Not(Pred("P")),Pred("Q"))
+
+test Not/equiv priority
+    "not P <-> Q" ->
+        Equiv(Not(Pred("P")),Pred("Q"))
+
+test Equiv/and priority
+    "P /\ Q <-> R" ->
+        Equiv(And(Pred("P"),Pred("Q")),Pred("R"))
+
+test Equiv/and priority
+    "P <-> Q /\ R" ->
+        Equiv(Pred("P"),And(Pred("Q"),Pred("R")))
+
+test Equiv/or priority
+    "P \/ Q <-> R" ->
+        Equiv(Or(Pred("P"),Pred("Q")),Pred("R"))
+
+test Equiv/or priority
+    "P <-> Q \/ R" ->
+        Equiv(Pred("P"),Or(Pred("Q"),Pred("R")))
+
+test Double negation
+    "not not P" ->
+        Not(Not(Pred("P")))
+
+test Two times not in conjunction
+    "not P /\ not Q" ->
+        And(Not(Pred("P")),Not(Pred("Q")))
+
+test Two times not in equiv
+    "not P <-> not Q" ->
+        Equiv(Not(Pred("P")),Not(Pred("Q")))
+
+test Double negation in disjunction (left side)
+    "not not P \/ Q" ->
+        Or(Not(Not(Pred("P"))),Pred("Q"))
+
+test Double negation in disjunction (right side)
+    "P \/ not not Q" ->
+        Or(Pred("P"),Not(Not(Pred("Q"))))
+
+test And associativity
+    "P /\ Q /\ R" ->
+        And(And(Pred("P"),Pred("Q")),Pred("R"))
+
+test Or associativity
+    "P \/ Q \/ R" ->
+        Or(Or(Pred("P"),Pred("Q")),Pred("R"))
+
+test Equiv associativity
+    "P <-> Q <-> R" ->
+        Equiv(Equiv(Pred("P"),Pred("Q")),Pred("R"))
+
+test And/or associativity
+    "P /\ Q \/ R" ->
+        Or(And(Pred("P"),Pred("Q")),Pred("R"))
+
+test Or/and associativity
+    "P \/ Q /\ R" ->
+        And(Or(Pred("P"),Pred("Q")),Pred("R"))
+
+
+test Simple forall
+    "forall a: P(a)" ->
+        Forall("a", Pred("P", ["a"]))
+
+test Simple exists
+    "exists a: P(a)" ->
+        Exists("a", Pred("P", ["a"]))
+
+test Higher-order forall
+    "forall A: A" ->
+        Forall("A", Pred("A"))
+
+test Higher-order exists
+    "exists A: A" ->
+        Exists("A", Pred("A"))
+
+test Forall over predicate with 0 arguments
+    "forall A(): A" fails
+
+test Exists over predicate with 0 arguments
+    "exists A(): A" fails
+
+test Forall over predicate with 2 arguments
+    "forall A(a,b): A" fails
+
+test Exists over predicate with 2 arguments
+    "exists A(a,b): A" fails
+
+test Forall/and priority
+    "forall A: A /\ B" ->
+        Forall("A",And(Pred("A"),Pred("B")))
+
+test Forall/or priority
+    "forall A: A \/ B" ->
+        Forall("A",Or(Pred("A"),Pred("B")))
+
+test Forall/equiv priority
+    "forall A: A <-> B" ->
+        Forall("A",Equiv(Pred("A"),Pred("B")))
+
+test Exists/and priority
+    "exists A: A /\ B" ->
+        Exists("A",And(Pred("A"),Pred("B")))
+
+test Exists/or priority
+    "exists A: A \/ B" ->
+        Exists("A",Or(Pred("A"),Pred("B")))
+
+test Exists/equiv priority
+    "exists A: A <-> B" ->
+        Exists("A",Equiv(Pred("A"),Pred("B")))
+
+
+test Brackets empty string
+    "(  )" fails
+
+test Brackets predicate
+    "(P)" ->
+        Pred("P")
+
+test Brackets constant
+    "(true)" ->
+        Constant("true")
+
+test Brackets before formula
+    "() P" fails
+
+test Brackets inside predicate
+    "P(())" fails
+
+test Brackets inside predicate
+    "P(a,(b),c)" fails
+
+test Brackets changing associativity or
+    "P \/ (Q \/ R)" ->
+        Or(Pred("P"),Or(Pred("Q"),Pred("R")))
+
+test Brackets changing associativity and
+    "P /\ (Q /\ R)" ->
+        And(Pred("P"),And(Pred("Q"),Pred("R")))
+
+test Brackets not changing associativity and
+    "(P /\ Q) /\ R" ->
+        And(And(Pred("P"),Pred("Q")),Pred("R"))
+
+test Brackets not changing associativity or
+    "(P \/ Q) \/ R" ->
+        Or(Or(Pred("P"),Pred("Q")),Pred("R"))
+
+test Brackets changing not/and priority
+    "not (P \/ Q)" ->
+        Not(Or(Pred("P"),Pred("Q")))
+
+test Brackets changing forall/and priority
+    "(forall A: A) /\ B" ->
+        And(Forall("A",Pred("A")),Pred("B"))
+
+test Brackets changing forall/or priority
+    "(forall A: A) \/ B" ->
+        Or(Forall("A",Pred("A")),Pred("B"))
+
+test Brackets changing forall/equiv priority
+    "(forall A: A) <-> B" ->
+        Equiv(Forall("A",Pred("A")),Pred("B"))
+
+test Brackets changing exists/and priority
+    "(exists A: A) /\ B" ->
+        And(Exists("A",Pred("A")),Pred("B"))
+
+test Brackets changing exists/or priority
+    "(exists A: A) \/ B" ->
+        Or(Exists("A",Pred("A")),Pred("B"))
+
+test Brackets changing exists/equiv priority
+    "(exists A: A) <-> B" ->
+        Equiv(Exists("A",Pred("A")),Pred("B"))
+
+
+test Whitespace around predicate
+    "  P " ->
+        Pred("P")
+
+test Whitespace between predicate and argument list
+    " P () " ->
+        Pred("P", [])
+
+test Whitespace with newlines
+    " P
+       () 
+    " ->
+        Pred("P", [])
+
+test Whitespace between predicate arguments
+    "P(   a,b ,  c )" ->
+        Pred("P", ["a","b","c"])
+
+test No whitespace between not and predicate
+    "notQ" fails
+
+test No whitespace between not and constant
+    "nottrue" fails
+
+test No whitespace between conjunction of predicates
+    "P/\Q" ->
+        And(Pred("P"),Pred("Q"))
+
+test No whitespace between equivalence of predicates
+    "P<->Q" ->
+        Equiv(Pred("P"),Pred("Q"))
+
+
+test Complex 1
+    "not (exists a : Man(a) /\ Woman(a))" ->
+        Not(
+            Exists("a", And(Pred("Man",["a"]),Pred("Woman",["a"])))
+        )
+
+test Complex 2
+    "forall A : forall B : not(A /\ B) <-> (not A \/ not B)" ->
+        Forall("A",
+            Forall("B",
+                Equiv(
+                    Not(And(Pred("A"),Pred("B"))),
+                    Or(Not(Pred("A")),Not(Pred("B")))
+                )
+            )
+        )
