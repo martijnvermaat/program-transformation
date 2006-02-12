@@ -24,9 +24,9 @@ if [ $? != 0 ]; then exit 1; fi
 rm -R PLF-parenthesize.c \
     PLF-parenthesize.dep \
     PLF-parenthesize.o \
-    PLF-parenthesize.str \
-    PLF.str \
-    .libs
+#    PLF-parenthesize.str \
+#    PLF.str \
+#    .libs
 
 
 # Invoke tests
@@ -56,9 +56,9 @@ for i in `ls tests/*.plf`; do
         | sglri -p PLF.tbl | pp-aterm -o base-pretty.ast
 
     # Pretty print the result
-    #./PLF-parenthesize -i base-pretty.ast \
-    #    | ast2abox -p pretty-print/PLF-pretty.pp \
-    #    | abox2text
+    ./PLF-parenthesize -i base-pretty.ast \
+        | ast2abox -p pretty-print/PLF-pretty.pp \
+        | abox2text
 
     # Show differences after parsing pretty-printed ast
     diff base.ast base-pretty.ast

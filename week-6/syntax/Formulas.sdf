@@ -26,11 +26,6 @@ exports
     Form "\\/" Form              -> Form {left, cons("Or")}
     Form "<->" Form              -> Form {left, cons("Equiv")}
 
-    %%"forall" Var ":" Form        -> Form {cons("Forall")}
-    %%"exists" Var ":" Form        -> Form {cons("Exists")}
-    %%"forall" Pred ":" Form       -> Form {cons("Forall")}
-    %%"exists" Pred ":" Form       -> Form {cons("Exists")}
-
     "forall" QVar ":" Form       -> Form {cons("Forall")}
     "exists" QVar ":" Form       -> Form {cons("Exists")}
 
@@ -56,10 +51,3 @@ exports
     "forall" QVar ":" Form       -> Form
     "exists" QVar ":" Form       -> Form
     }
-
-%%    {
-%%      "forall" Var ":" Form      -> Form
-%%      "exists" Var ":" Form      -> Form
-%%      "forall" Pred ":" Form     -> Form
-%%      "exists" Pred ":" Form     -> Form
-%%    }
