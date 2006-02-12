@@ -30,23 +30,23 @@ test Simple predicate
 
 test Simple predicate with 0 arguments
     "P()" ->
-        Pred("P", [])
+        Pred("P", Varlist([]))
 
 test Simple predicate with 0 arguments
     "Q89hoP()" ->
-        Pred("Q89hoP", [])
+        Pred("Q89hoP", Varlist([]))
 
 test Simple predicate with 1 argument
     "P(abc)" ->
-        Pred("P", ["abc"])
+        Pred("P", Varlist(["abc"]))
 
 test Simple predicate with 1 argument
     "Q89hoP(z)" ->
-        Pred("Q89hoP", ["z"])
+        Pred("Q89hoP", Varlist(["z"]))
 
 test Simple predicate with 3 arguments
     "P(a,b,c)" ->
-        Pred("P", ["a","b","c"])
+        Pred("P", Varlist(["a","b","c"]))
 
 test Predicate as argument
     "P(Q)" fails
@@ -155,11 +155,11 @@ test Or/and associativity
 
 test Simple forall
     "forall a: P(a)" ->
-        Forall("a", Pred("P", ["a"]))
+        Forall("a", Pred("P", Varlist(["a"])))
 
 test Simple exists
     "exists a: P(a)" ->
-        Exists("a", Pred("P", ["a"]))
+        Exists("a", Pred("P", Varlist(["a"])))
 
 test Higher-order forall
     "forall A: A" ->
@@ -180,6 +180,22 @@ test Forall over predicate with 2 arguments
 
 test Exists over predicate with 2 arguments
     "exists A(a,b): A" fails
+
+test Negated forall
+    "not forall A: A" ->
+        Not(Forall("A",Pred("A")))
+
+test Negated exists
+    "not exists A: A" ->
+        Not(Exists("A",Pred("A")))
+
+test Forall with negated body
+    "forall A: not A" ->
+        Forall("A",Not(Pred("A")))
+
+test Exists with negated body
+    "exists A: not A" ->
+        Exists("A",Not(Pred("A")))
 
 test Forall/and priority
     "forall A: A /\ B" ->
@@ -277,17 +293,17 @@ test Whitespace around predicate
 
 test Whitespace between predicate and argument list
     " P () " ->
-        Pred("P", [])
+        Pred("P", Varlist([]))
 
 test Whitespace with newlines
     " P
        () 
     " ->
-        Pred("P", [])
+        Pred("P", Varlist([]))
 
 test Whitespace between predicate arguments
     "P(   a,b ,  c )" ->
-        Pred("P", ["a","b","c"])
+        Pred("P", Varlist(["a","b","c"]))
 
 test No whitespace between not and predicate
     "notQ" fails
@@ -307,7 +323,7 @@ test No whitespace between equivalence of predicates
 test Complex 1
     "not (exists a : Man(a) /\ Woman(a))" ->
         Not(
-            Exists("a", And(Pred("Man",["a"]),Pred("Woman",["a"])))
+            Exists("a", And(Pred("Man",Varlist(["a"])),Pred("Woman",Varlist(["a"]))))
         )
 
 test Complex 2
@@ -320,3 +336,10 @@ test Complex 2
                 )
             )
         )
+
+
+test Complex 1
+    file complex1.plf succeeds
+
+test Complex 2
+    file complex2.plf succeeds

@@ -11,14 +11,14 @@ imports
 
 exports
 
-  sorts Form VarList
+  sorts Form VarList QVar
 
   context-free syntax
 
     Pred                         -> Form {cons("Pred")}
     Pred "(" VarList ")"         -> Form {cons("Pred")}
 
-    {Var ","}*                   -> VarList
+    {Var ","}*                   -> VarList {cons("Varlist")}
 
     Constant                     -> Form {cons("Constant")}
     "not" Form                   -> Form {cons("Not")}
@@ -26,10 +26,16 @@ exports
     Form "\\/" Form              -> Form {left, cons("Or")}
     Form "<->" Form              -> Form {left, cons("Equiv")}
 
-    "forall" Var ":" Form        -> Form {cons("Forall")}
-    "exists" Var ":" Form        -> Form {cons("Exists")}
-    "forall" Pred ":" Form       -> Form {cons("Forall")}
-    "exists" Pred ":" Form       -> Form {cons("Exists")}
+    %%"forall" Var ":" Form        -> Form {cons("Forall")}
+    %%"exists" Var ":" Form        -> Form {cons("Exists")}
+    %%"forall" Pred ":" Form       -> Form {cons("Forall")}
+    %%"exists" Pred ":" Form       -> Form {cons("Exists")}
+
+    "forall" QVar ":" Form       -> Form {cons("Forall")}
+    "exists" QVar ":" Form       -> Form {cons("Exists")}
+
+    Var                          -> QVar
+    Pred                         -> QVar
 
     "(" Form ")"                 -> Form {bracket}
 
@@ -47,8 +53,13 @@ exports
     }
     >
     {
-      "forall" Var ":" Form      -> Form
-      "exists" Var ":" Form      -> Form
-      "forall" Pred ":" Form     -> Form
-      "exists" Pred ":" Form     -> Form
+    "forall" QVar ":" Form       -> Form
+    "exists" QVar ":" Form       -> Form
     }
+
+%%    {
+%%      "forall" Var ":" Form      -> Form
+%%      "exists" Var ":" Form      -> Form
+%%      "forall" Pred ":" Form     -> Form
+%%      "exists" Pred ":" Form     -> Form
+%%    }
