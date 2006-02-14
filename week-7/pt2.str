@@ -1,0 +1,46 @@
+module pt2
+imports
+  Java-15
+  libstrategolib
+
+
+rules
+
+  removeEqTrue : Eq(Lit(Bool(True)), e) -> e
+  removeEqTrue : Eq(e, Lit(Bool(True))) -> e
+
+
+strategies
+
+  main-pt2 =
+    io-wrap(exc-1)
+
+
+strategies
+
+  exc-1 =
+       ? If(e, s)
+    <+ ? If(e, s1, s2)
+    <+ ? While(e, s)
+    <+ ? Return(e)
+
+  exc-2 =
+       ? If(_,Empty)
+    <+ ? If(_, Block([Empty]))
+    <+ ? If(_, Block([]))
+    <+ ? If(_, Empty ,_)
+    <+ ? If(_, Block([Empty]), _)
+    <+ ? If(_, Block([]), _)
+    <+ ? If(_, _, Empty)
+    <+ ? If(_, _, Block([Empty]))
+    <+ ? If(_, _, Block([]))
+
+  exc-3 =
+       ? Eq(Lit(Bool(True)), _)
+    <+ ? Eq(_, Lit(Bool(True)))
+
+  exc-4 =
+    try(removeEqTrue)
+
+  exc-14 =
+    id
