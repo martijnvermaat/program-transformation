@@ -4,12 +4,6 @@ imports
   libstrategolib
 
 
-rules
-
-  removeEqTrue : Eq(Lit(Bool(True)), e) -> e
-  removeEqTrue : Eq(e, Lit(Bool(True))) -> e
-
-
 strategies
 
   main-pt2 =
@@ -42,5 +36,45 @@ strategies
   exc-4 =
     try(removeEqTrue)
 
+  exc-5 =
+    id
+
+  exc-6 =
+    id
+
+  exc-7 =
+    id
+
+  exc-8 =
+    id
+
+  exc-9 =
+    id
+
+  exc-10 =
+    id
+
+  exc-11 =
+    id
+
+  exc-12 =
+    id
+
+  exc-13 =
+    id
+
   exc-14 =
     id
+
+  exc-15 =
+    id
+
+
+  exc-apply-first(s) =
+    id
+
+
+rules
+
+  removeEqTrue : Eq(Lit(Bool(True)), e) -> e
+  removeEqTrue : Eq(e, Lit(Bool(True))) -> e
