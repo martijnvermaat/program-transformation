@@ -8,7 +8,7 @@ strategies
         exc-2-test;
         exc-3-test;
         exc-4-test
-     )
+    )
 
   exc-1-test =
 
@@ -179,3 +179,281 @@ strategies
       !Invoke(Method(MethodName(Id("m"))),[]),
       !Invoke(Method(MethodName(Id("m"))),[])
     )
+
+  exc-5-test =
+
+    apply-test(!"exc-5-test-1",
+      exc-5,
+      !If(ExprName(Id("x")),ExprStm(Invoke(Method(MethodName(Id("x"))),[])))
+    );
+
+    apply-test(!"exc-5-test-2",
+      exc-5,
+      !If(ExprName(Id("x")),ExprStm(Invoke(Method(MethodName(Id("x"))),[])),ExprStm(Invoke(Method(MethodName(Id("m"))),[])))
+    );
+
+    apply-test(!"exc-5-test-3",
+      exc-5,
+      !If(ExprName(Id("x")),ExprStm(Invoke(Method(MethodName(Id("x"))),[])),Block([ExprStm(Invoke(Method(MethodName(Id("m"))),[]))]))
+    );
+
+    apply-test(!"exc-5-test-4",
+      exc-5,
+      !If(ExprName(Id("x")),Block([ExprStm(Invoke(Method(MethodName(Id("x"))),[]))]),ExprStm(Invoke(Method(MethodName(Id("m"))),[])))
+    );
+
+    apply-and-fail(!"exc-5-test-5",
+      exc-5,
+      !If(ExprName(Id("x")),Block([Empty]))
+    );
+
+    apply-and-fail(!"exc-5-test-6",
+      exc-5,
+      !If(ExprName(Id("x")),Block([ExprStm(Invoke(Method(MethodName(Id("h"))),[]))]),Block([]))
+    );
+
+    apply-and-fail(!"exc-5-test-7",
+      exc-5,
+      !If(ExprName(Id("x")),Block([ExprStm(Invoke(Method(MethodName(Id("h"))),[]))]),Block([ExprStm(ExprName(Id("n")))]))
+    );
+
+    apply-test(!"exc-5-test-8",
+      exc-5,
+      !DoWhile(ExprStm(ExprName(Id("x"))),ExprName(Id("b")))
+    );
+
+    apply-test(!"exc-5-test-9",
+      exc-5,
+      !DoWhile(ExprStm(Invoke(Method(MethodName(AmbName(Id("n")),Id("x"))),[])),ExprName(Id("b")))
+    );
+
+    apply-and-fail(!"exc-5-test-10",
+      exc-5,
+      !DoWhile(Block([ExprStm(Invoke(Method(MethodName(AmbName(Id("n")),Id("x"))),[]))]),ExprName(Id("b")))
+    );
+
+    apply-and-fail(!"exc-5-test-11",
+      exc-5,
+      !DoWhile(Block([]),ExprName(Id("b")))
+    );
+
+    apply-test(!"exc-5-test-12",
+      exc-5,
+      !ForEach(Param([],Int,Id("x")),ExprName(Id("ids")),ExprStm(Invoke(Method(MethodName(Id("m"))),[])))
+    );
+
+    apply-and-fail(!"exc-5-test-13",
+      exc-5,
+      !ForEach(Param([],Int,Id("x")),ExprName(Id("ids")),Block([]))
+    )
+
+  exc-6-test =
+
+    apply-test(!"exc-6-test-1",
+      exc-6,
+      !If(ExprName(Id("b")),ExprStm(ExprName(Id("m")))),
+      !If(ExprName(Id("b")),Block([ExprStm(ExprName(Id("m")))]))
+    );
+
+    apply-test(!"exc-6-test-2",
+      exc-6,
+      !If(ExprName(Id("b")),ExprStm(ExprName(Id("m"))),Block([])),
+      !If(ExprName(Id("b")),Block([ExprStm(ExprName(Id("m")))]),Block([]))
+    );
+
+    apply-test(!"exc-6-test-3",
+      exc-6,
+      !If(ExprName(Id("b")),ExprStm(ExprName(Id("m"))),ExprStm(Invoke(Method(MethodName(Id("x"))),[]))),
+      !If(ExprName(Id("b")),Block([ExprStm(ExprName(Id("m")))]),Block([ExprStm(Invoke(Method(MethodName(Id("x"))),[]))]))
+    );
+
+    apply-and-fail(!"exc-6-test-4",
+      exc-6,
+      !If(ExprName(Id("b")),Block([ExprStm(ExprName(Id("m")))]))
+    );
+
+    apply-test(!"exc-6-test-5",
+      exc-6,
+      !DoWhile(ExprStm(ExprName(Id("m"))),ExprName(Id("b"))),
+      !DoWhile(Block([ExprStm(ExprName(Id("m")))]),ExprName(Id("b")))
+    );
+
+    apply-test(!"exc-6-test-6",
+      exc-6,
+      !DoWhile(Empty,ExprName(Id("b"))),
+      !DoWhile(Block([Empty]),ExprName(Id("b")))
+    );
+
+    apply-and-fail(!"exc-6-test-7",
+      exc-6,
+      !DoWhile(Block([Empty]),ExprName(Id("b")))
+    );
+
+    apply-test(!"exc-6-test-8",
+      exc-6,
+      !ForEach(Param([],Int,Id("i")),ExprName(Id("ids")),ExprStm(ExprName(Id("b")))),
+      !ForEach(Param([],Int,Id("i")),ExprName(Id("ids")),Block([ExprStm(ExprName(Id("b")))]))
+    );
+
+    apply-and-fail(!"exc-6-test-9",
+      exc-6,
+      !ForEach(Param([],Int,Id("i")),ExprName(Id("ids")),Block([ExprStm(ExprName(Id("b")))]))
+    )
+
+  exc-7-test =
+
+    apply-test(!"exc-7-test-1",
+      exc-7,
+      !Assign(ExprName(Id("m")),ExprName(Id("m")))
+    );
+
+    apply-test(!"exc-7-test-2",
+      exc-7,
+      !Assign(ExprName(AmbName(Id("m")),Id("a")),ExprName(AmbName(Id("m")),Id("a")))
+    );
+
+    apply-and-fail(!"exc-7-test-3",
+      exc-7,
+      !Assign(ExprName(AmbName(Id("n")),Id("a")),ExprName(AmbName(Id("m")),Id("a")))
+    );
+
+    apply-and-fail(!"exc-7-test-4",
+      exc-7,
+      !Assign(ExprName(Id("m")),ExprName(Id("i")))
+    );
+
+    apply-and-fail(!"exc-7-test-5",
+      exc-7,
+      !Assign(ExprName(Id("m")),Mul(Lit(Deci("5")),Lit(Deci("1"))))
+    );
+
+    apply-and-fail(!"exc-7-test-6",
+      exc-7,
+      !ExprName(Id("m"))
+    )
+
+  exc-8-test =
+
+    apply-test(!"exc-8-test-1",
+      exc-8,
+      !Invoke(Method(MethodName(AmbName(Id("bar")),Id("equals"))),[Lit(String([Chars("foo")]))]),
+      !Invoke(Method(Lit(String([Chars("foo")])),None,Id("equals")),[ExprName(Id("bar"))])
+    );
+
+    apply-test(!"exc-8-test-2",
+      exc-8,
+      !Invoke(Method(MethodName(AmbName(AmbName(Id("z")),Id("bar")),Id("equals"))),[Lit(String([Chars("foo")]))]),
+      !Invoke(Method(Lit(String([Chars("foo")])),None,Id("equals")),[ExprName(AmbName(Id("z")),Id("bar"))])
+    );
+
+    apply-and-fail(!"exc-8-test-3",
+      exc-8,
+      !Invoke(Method(Lit(String([Chars("foo")])),None,Id("equals")),[Lit(String([Chars("bar")]))])
+    );
+
+    apply-and-fail(!"exc-8-test-4",
+      exc-8,
+      !Invoke(Method(MethodName(AmbName(Id("m")),Id("equals"))),[ExprName(Id("b"))])
+    );
+
+    apply-and-fail(!"exc-8-test-5",
+      exc-8,
+      !Lit(String([Chars("hoi")]))
+    )
+
+  exc-9-test =
+
+    apply-test(!"exc-9-test-",
+      exc-9,
+      !If(NotEq(ExprName(Id("x")),ExprName(Id("y"))),ExprStm(Invoke(Method(MethodName(Id("doSomething"))),[])),
+        ExprStm(Invoke(Method(MethodName(Id("doSomethingElse"))),[]))),
+      !If(Eq(ExprName(Id("x")),ExprName(Id("y"))),ExprStm(Invoke(Method(MethodName(Id("doSomethingElse"))),[])),
+        ExprStm(Invoke(Method(MethodName(Id("doSomething"))),[])))
+    );
+
+    apply-and-fail(!"exc-9-test-",
+      exc-9,
+      !If(Eq(ExprName(Id("x")),ExprName(Id("y"))),ExprStm(Invoke(Method(MethodName(Id("doSomethingElse"))),[])),
+        ExprStm(Invoke(Method(MethodName(Id("doSomething"))),[])))
+    );
+
+    apply-test(!"exc-9-test-",
+      exc-9,
+      !If(NotEq(ExprName(Id("x")),ExprName(Id("y"))),Block([ExprStm(Invoke(Method(MethodName(Id("doSomething"))),[]))]),
+        ExprStm(Invoke(Method(MethodName(Id("doSomethingElse"))),[]))),
+      !If(Eq(ExprName(Id("x")),ExprName(Id("y"))),ExprStm(Invoke(Method(MethodName(Id("doSomethingElse"))),[])),
+        Block([ExprStm(Invoke(Method(MethodName(Id("doSomething"))),[]))]))
+    );
+
+    apply-and-fail(!"exc-9-test-",
+      exc-9,
+      !If(NotEq(ExprName(Id("x")),ExprName(Id("y"))),ExprStm(Invoke(Method(MethodName(Id("doSomethingElse"))),[])))
+    );
+
+    apply-test(!"exc-9-test-",
+      exc-9,
+      !If(Not(Lit(Bool(True))),ExprStm(Invoke(Method(MethodName(Id("doSomethingElse"))),[])),
+        Block([ExprStm(Invoke(Method(MethodName(Id("doSomething"))),[]))])),
+      !If(Lit(Bool(True)),Block([ExprStm(Invoke(Method(MethodName(Id("doSomething"))),[]))]),
+        ExprStm(Invoke(Method(MethodName(Id("doSomething"))),[])))
+    );
+
+    apply-test(!"exc-9-test-",
+      exc-9,
+      !If(Not(NotEq(ExprName(Id("x")),ExprName(Id("y")))),ExprStm(Invoke(Method(MethodName(Id("a"))),[])),
+        ExprStm(Invoke(Method(MethodName(Id("b"))),[]))),
+      !If(NotEq(ExprName(Id("x")),ExprName(Id("y"))),ExprStm(Invoke(Method(MethodName(Id("b"))),[])),
+        ExprStm(Invoke(Method(MethodName(Id("a"))),[])))
+    );
+
+    apply-and-fail(!"exc-9-test-",
+      exc-9,
+      !ExprStm(Invoke(Method(MethodName(Id("m"))),[]))
+    )
+
+  exc-10-test =
+
+    apply-test(!"exc-10-test-",
+      exc-10,
+      !MethodDec(MethodDecHead([],None,Void,Id("foo"),[],None),Block([ExprStm(Invoke(Method(MethodName(Id("bar"))),[])),
+        Return(Some(ExprName(Id("x"))))])),
+      !Return(Some(ExprName(Id("x"))))
+    );
+
+    apply-test(!"exc-10-test-",
+      exc-10,
+      !MethodDec(MethodDecHead([Public,Static],None,Void,Id("main"),[Param([],ArrayType(ClassOrInterfaceType(TypeName(Id("String")),None)),
+        Id("args"))],None),Block([ExprStm(Invoke(Method(MethodName(Id("bar"))),[])),If(ExprName(Id("x")),Block([Return(Some(ExprName(Id("x"))))]),
+        Block([Return(Some(Invoke(Method(MethodName(Id("m"))),[])))]))])),
+      !If(ExprName(Id("x")),Block([Return(Some(ExprName(Id("x"))))]),Block([Return(Some(Invoke(Method(MethodName(Id("m"))),[])))]))
+    );
+
+    apply-test(!"exc-10-test-",
+      exc-10,
+      !ConstrDec(ConstrDecHead([Public],None,Id("foo"),[],None),ConstrBody(None,[Empty])),
+      !Empty
+    );
+
+    apply-and-fail(!"exc-10-test-",
+      exc-10,
+      !ConstrDec(ConstrDecHead([Public],None,Id("foo"),[],None),ConstrBody(None,[]))
+    );
+
+    apply-and-fail(!"exc-10-test-",
+      exc-10,
+      !ExprStm(Invoke(Method(MethodName(Id("m"))),[]))
+    )
+
+  exc-11-test =
+
+    apply-test(!"exc-11-test-",
+      exc-11,
+      !
+    );
+
+  exc-12-test =
+
+    apply-test(!"exc-12-test-",
+      exc-12,
+      !
+    );
