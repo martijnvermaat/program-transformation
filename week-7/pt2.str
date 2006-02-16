@@ -37,19 +37,27 @@ strategies
     try(removeEqTrue)
 
   exc-5 =
-    id
+       ? If(_, _)         ; noBlockIf
+    <+ ? If(_, _, _)      ; noBlockIfElse1
+    <+ ? If(_, _, _)      ; noBlockIfElse2
+    <+ ? DoWhile(_, _)    ; noBlockDoWhile
+    <+ ? ForEach(_, _, _) ; noBlockForEach
 
   exc-6 =
-    id
+       introBlockIf
+    <+ introBlockIfElse1
+    <+ introBlockIfElse2
+    <+ introBlockDoWhile
+    <+ introBlockForEach
 
   exc-7 =
-    id
+    ? Assign(a, a)
 
   exc-8 =
-    id
+    invertEqualsString
 
   exc-9 =
-    id
+    invertIfNot
 
   exc-10 =
     id
@@ -70,6 +78,21 @@ strategies
     id
 
 
+  noBlockIf =
+    not( ? If(_, Block(_)) )
+
+  noBlockIfElse1 =
+    not( ? If(_, Block(_), _) )
+
+  noBlockIfElse2 =
+    not( ? If(_, _, Block(_)) )
+
+  noBlockDoWhile =
+    not( ? DoWhile(Block(_), _) )
+
+  noBlockForEach =
+    not( ? ForEach(_, _, Block(_)) )
+
   exc-apply-first(s) =
     id
 
@@ -78,3 +101,21 @@ rules
 
   removeEqTrue : Eq(Lit(Bool(True)), e) -> e
   removeEqTrue : Eq(e, Lit(Bool(True))) -> e
+
+  introBlockIf      : If(c, b)         -> If(c, Block([b]))         where(noBlockIf)
+  introBlockIfElse1 : If(c, i, e)      -> If(c, Block([i]), e)      where(noBlockIfElse1)
+  introBlockIfElse2 : If(c, i, e)      -> If(c, i, Block([e]))      where(noBlockIfElse2)
+  introBlockDoWhile : DoWhile(b, c)    -> DoWhile(Block([b]), c)    where(noBlockDoWhile)
+  introBlockForEach : ForEach(p, e, b) -> ForEach(p, e, Block([b])) where(noBlockForEach)
+
+  invertEqualsString :
+    Invoke(Method(MethodName(AmbName(o), Id("equals"))), [Lit(String(s))])
+    ->
+    Invoke(Method(Lit(String(s)), None, Id("equals")), [ExprName(o)])
+
+  invertIfNot : If(c, i, e) -> If(<invertNotEqual>c, e, i) where(<?NotEq(e1, e2)>c)
+  invertIfNot : If(c, i, e) -> If(<removeNot>c, e, i) where(<?Not(c1)>c)
+
+  invertNotEqual : NotEq(e1, e2) -> Eq(e1, e2)
+
+  removeNot : Not(e) -> e

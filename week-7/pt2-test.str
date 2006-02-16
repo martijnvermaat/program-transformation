@@ -405,7 +405,7 @@ strategies
       !If(Not(Lit(Bool(True))),ExprStm(Invoke(Method(MethodName(Id("doSomethingElse"))),[])),
         Block([ExprStm(Invoke(Method(MethodName(Id("doSomething"))),[]))])),
       !If(Lit(Bool(True)),Block([ExprStm(Invoke(Method(MethodName(Id("doSomething"))),[]))]),
-        ExprStm(Invoke(Method(MethodName(Id("doSomething"))),[])))
+        ExprStm(Invoke(Method(MethodName(Id("doSomethingElse"))),[])))
     );
 
     apply-test(!"exc-9-test-6",
