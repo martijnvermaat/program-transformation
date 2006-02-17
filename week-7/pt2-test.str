@@ -24,94 +24,149 @@ strategies
 
     apply-test(!"exc-1-test-1",
       exc-1,
-      !If(ExprName(Id("x")),Block([Empty]))
+      !bstm |[
+        if (hoi) { ; }
+        ]|
     );
 
     apply-test(!"exc-1-test-2",
       exc-1,
-      !If(Lit(Bool(True)),Block([ExprStm(ExprName(Id("x")))]))
+      !bstm |[
+        if (true) { ; }
+        ]|
     );
 
     apply-test(!"exc-1-test-3",
       exc-1,
-      !If(Lit(Bool(True)),Block([ExprStm(ExprName(Id("x")))]),Block([ExprStm(ExprName(Id("y")))]))
+      !bstm |[
+        if (true) {
+          mmmx;
+        } else {
+          hhhj;
+        }
+        ]|
     );
 
     apply-test(!"exc-1-test-4",
       exc-1,
-      !While(ExprName(Id("x")),Block([ExprStm(Lit(Bool(True)))]))
+      !bstm |[
+        while (cond) {
+          true;
+        }
+        ]|
     );
 
     apply-test(!"exc-1-test-5",
       exc-1,
-      !While(ExprName(Id("x")),Empty)
+      !bstm |[
+        while (wat);
+        ]|
     );
 
     apply-test(!"exc-1-test-6",
       exc-1,
-      !|[ return true; ]|
+      !bstm |[
+        return true;
+        ]|
     );
 
     apply-and-fail(!"exc-1-test-7",
       exc-1,
-      !ExprStm(Assign(ExprName(Id("x")),Lit(Deci("1"))))
+      !bstm |[
+        mijnvar = 1;
+        ]|
     );
 
     apply-and-fail(!"exc-1-test-8",
       exc-1,
-      !Lit(Bool(True))
+      !e |[
+        true
+        ]|
     )
 
   exc-2-test =
 
     apply-test(!"exc-2-test-1",
       exc-2,
-      !If(Lit(Bool(True)),Empty)
+      !bstm |[
+        if (true);
+        ]|
     );
 
     apply-test(!"exc-2-test-2",
       exc-2,
-      !If(Lit(Bool(True)),Block([]))
+      !bstm |[
+        if (true) { }
+        ]|
     );
 
     apply-test(!"exc-2-test-3",
       exc-2,
-      !If(Lit(Bool(True)),Block([Empty]),Block([ExprStm(Invoke(Method(MethodName(Id("x"))),[]))]))
+      !bstm |[
+        if (true) {
+          ;
+        } else {
+          xvar();
+        }
+        ]|
     );
 
     apply-test(!"exc-2-test-4",
       exc-2,
-      !If(Lit(Bool(True)),Block([]),Empty)
+      !bstm |[
+        if (true) { } else;
+        ]|
     );
 
     apply-test(!"exc-2-test-5",
       exc-2,
-      !If(Lit(Bool(True)),Block([Empty]),Empty)
+      !bstm |[
+        if (true) { ; } else;
+        ]|
     );
 
     apply-test(!"exc-2-test-6",
       exc-2,
-      !If(Lit(Bool(True)),Block([ExprStm(Invoke(Method(MethodName(Id("x"))),[]))]),Block([]))
+      !bstm |[
+        if (true) {
+          zooix();
+        } else { }
+        ]|
     );
 
     apply-test(!"exc-2-test-7",
       exc-2,
-      !If(Lit(Bool(True)),Empty,Block([ExprStm(ExprName(Id("m")))]))
+      !bstm |[
+        if (true);
+        else {
+          hoi;
+        }
+        ]|
     );
 
     apply-and-fail(!"exc-2-test-8",
       exc-2,
-      !If(Lit(Bool(True)),ExprStm(ExprName(Id("m"))))
+      !bstm |[
+        if (true) maar;
+        ]|
     );
 
     apply-and-fail(!"exc-2-test-9",
       exc-2,
-      !If(Lit(Bool(True)),ExprStm(Invoke(Method(MethodName(Id("x"))),[])),Block([ExprStm(ExprName(Id("m")))]))
+      !bstm |[
+        if (true) hhh();
+        else {
+          mm;
+        }
+        ]|
     );
 
     apply-and-fail(!"exc-2-test-10",
       exc-2,
-      !If(Lit(Bool(True)),ExprStm(ExprName(Id("x"))),ExprStm(ExprName(Id("m"))))
+      !bstm |[
+        if (true) zzz;
+        else mmm;
+        ]|
     )
 
   exc-3-test =
