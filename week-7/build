@@ -1,4 +1,4 @@
 #!/bin/bash
 
 strc -i pt2.str -la stratego-lib -m main-pt2
-strc -i pt2-test.str -la stratego-lib -m main-pt2-test
+strc -i pt2-test.str -la stratego-lib -m main-pt2-test -I ~/.nix-profile/share/sdf/java-front -I ~/.nix-profile/share/java-front
