@@ -12,30 +12,44 @@ strategies
 
 strategies
 
+  /*
+    Succeed if the current term is a Java control-flow statement.
+  */
   exc-1 =
        ? If(e, s)
     <+ ? If(e, s1, s2)
     <+ ? While(e, s)
     <+ ? Return(e)
 
+  /*
+    Succeed on an Java if-statement with no statements in one of its branches.
+    (The empty statement ';' is considered a statement.)
+  */
   exc-2 =
        ? If(_,Empty)
-    <+ ? If(_, Block([Empty]))
     <+ ? If(_, Block([]))
     <+ ? If(_, Empty ,_)
-    <+ ? If(_, Block([Empty]), _)
     <+ ? If(_, Block([]), _)
     <+ ? If(_, _, Empty)
-    <+ ? If(_, _, Block([Empty]))
     <+ ? If(_, _, Block([]))
 
+  /*
+    Succeed on an equality check of true.
+  */
   exc-3 =
        ? Eq(Lit(Bool(True)), _)
     <+ ? Eq(_, Lit(Bool(True)))
 
+  /*
+    Rewrite equality check of true to compared expression. Always succeed.
+  */
   exc-4 =
     try(removeEqTrue)
 
+  /*
+    Succeed on a control-flow statement where one of the branches is not a
+    block.
+  */
   exc-5 =
        ? If(_, _)         ; no-block-if
     <+ ? If(_, _, _)      ; no-block-if-else1
@@ -43,25 +57,47 @@ strategies
     <+ ? DoWhile(_, _)    ; no-block-do-while
     <+ ? ForEach(_, _, _) ; no-block-for-each
 
+  /*
+    Introduce missing blocks in the branches of a control-flow statement.
+  */
   exc-6 =
        introBlockIf
-    <+ introBlockIfElse1
+    <+ introBlockIfElse1 ; try(introBlockIfElse2)
     <+ introBlockIfElse2
     <+ introBlockDoWhile
     <+ introBlockForEach
 
+  /*
+    Succeed on self-assignment.
+  */
   exc-7 =
     ? Assign(a, a)
 
+  /*
+    Invert .equals invocation with a String as argument.
+    Currently only works with method invocations on simple object variables,
+    e.g. package.class.var.equals("s") will not be rewritten.
+  */
   exc-8 =
     invertEqualsString
 
+  /*
+    Swap branches of if-then-else statement with not-equal or not as
+    condition.
+  */
   exc-9 =
-    invertIfNot
+       swapNotEqualIf
+    <+ swapNotIf
 
+  /*
+    Return last statement in the body of a method definition.
+  */
   exc-10 =
     ? MethodDec(MethodDecHead(_, _, _, _, _, _), Block( <last-from-list> ))
 
+  /*
+    Example of exc-apply-first strategy.
+  */
   exc-11 =
     ![3, 2, 1, 2, 3, 1] ; exc-apply-first(\ 1 -> 4 \) 
 
@@ -78,25 +114,49 @@ strategies
     id
 
 
+  /*
+    Succeed on everything that's not a simple if-statement with a block.
+  */
   no-block-if =
     not( ? If(_, Block(_)) )
 
+  /*
+    Succeed on everything that's not an if-then-else statement with a block as
+    first branch.
+  */
   no-block-if-else1 =
     not( ? If(_, Block(_), _) )
 
+  /*
+    Succeed on everything that's not an if-then-else statement with a block as
+    second branch.
+  */
   no-block-if-else2 =
     not( ? If(_, _, Block(_)) )
 
+  /*
+    Succeed on everything that's not a do-while statement with a block.
+  */
   no-block-do-while =
     not( ? DoWhile(Block(_), _) )
 
+  /*
+    Succeed on everything that's not a for-each statement with a block.
+  */
   no-block-for-each =
     not( ? ForEach(_, _, Block(_)) )
 
+  /*
+    Return last element from a list (fail if there is none).
+  */
   last-from-list =
        ? [ e ] ; !e
     <+ ? [ _ | t ] ; <last-from-list>t
 
+  /*
+    Apply strategy s to the first term of a list for which s succeeds. Fail if
+    s cannot be applied to any of the elements.
+  */
   exc-apply-first(s) =
        applyToFirstElement(s)
     <+ ? [ e | t ] ; ! [e | <exc-apply-first(s)>t ]
@@ -105,25 +165,63 @@ strategies
 
 rules
 
-  removeEqTrue : Eq(Lit(Bool(True)), e) -> e
-  removeEqTrue : Eq(e, Lit(Bool(True))) -> e
+  /*
+    Rewrite equality check of true to compared expression.
+  */
+  removeEqTrue :
+        Eq(Lit(Bool(True)), e) -> e
+  removeEqTrue :
+        Eq(e, Lit(Bool(True))) -> e
 
-  introBlockIf      : If(c, b)         -> If(c, Block([b]))         where(no-block-if)
-  introBlockIfElse1 : If(c, i, e)      -> If(c, Block([i]), e)      where(no-block-if-else1)
-  introBlockIfElse2 : If(c, i, e)      -> If(c, i, Block([e]))      where(no-block-if-else2)
-  introBlockDoWhile : DoWhile(b, c)    -> DoWhile(Block([b]), c)    where(no-block-do-while)
-  introBlockForEach : ForEach(p, e, b) -> ForEach(p, e, Block([b])) where(no-block-for-each)
+  /*
+    Introduce missing block in branche of control-flow statement.
+  */
+  introBlockIf :
+        If(c, b)         -> If(c, Block([b]))         where(no-block-if)
+  introBlockIfElse1 :
+        If(c, i, e)      -> If(c, Block([i]), e)      where(no-block-if-else1)
+  introBlockIfElse2 :
+        If(c, i, e)      -> If(c, i, Block([e]))      where(no-block-if-else2)
+  introBlockDoWhile :
+        DoWhile(b, c)    -> DoWhile(Block([b]), c)    where(no-block-do-while)
+  introBlockForEach :
+        ForEach(p, e, b) -> ForEach(p, e, Block([b])) where(no-block-for-each)
 
+  /*
+    Rewrite .equals invocation with String as argument to .equals invocation
+    on the String literal.
+  */
   invertEqualsString :
-    Invoke(Method(MethodName(AmbName(o), Id("equals"))), [Lit(String(s))])
-    ->
-    Invoke(Method(Lit(String(s)), None, Id("equals")), [ExprName(o)])
+        Invoke(Method(MethodName(AmbName(o), Id("equals"))), [Lit(String(s))]) ->
+        Invoke(Method(Lit(String(s)), None, Id("equals")), [ExprName(o)])
 
-  invertIfNot : If(c, i, e) -> If(<invertNotEqual>c, e, i) where(<?NotEq(e1, e2)>c)
-  invertIfNot : If(c, i, e) -> If(<removeNot>c, e, i) where(<?Not(c1)>c)
+  /*
+    Swap branches of if-then-else statement with not-equal as condition.
+  */
+  swapNotEqualIf :
+        If(c, i, e) -> If(<invertNotEqual>c, e, i) where(<?NotEq(e1, e2)>c)
 
-  invertNotEqual : NotEq(e1, e2) -> Eq(e1, e2)
+  /*
+    Swap branches of if-then-else statement with negated condition.
+  */
+  swapNotIf :
+        If(c, i, e) -> If(<removeNot>c, e, i) where(<?Not(c1)>c)
 
-  removeNot : Not(e) -> e
+  /*
+    Rewrite not-equal comparison to equality comparison.
+  */
+  invertNotEqual :
+        NotEq(e1, e2) -> Eq(e1, e2)
 
-  applyToFirstElement(s) : [ e | t ] -> [ <s>e | t ] where(<s>e)
+  /*
+    Rewrite negated expression to expression.
+  */
+  removeNot :
+        Not(e) -> e
+
+  /*
+    Rewrite list to same list with strategy s applied to the first element if
+    this application succeeds.
+  */
+  applyToFirstElement(s) :
+        [ e | t ] -> [ <s>e | t ] where(<s>e)

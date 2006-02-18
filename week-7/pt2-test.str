@@ -103,9 +103,8 @@ strategies
     apply-test(!"exc-2-test-3",
       exc-2,
       !bstm |[
-        if (true) {
-          ;
-        } else {
+        if (true) { }
+        else {
           xvar();
         }
         ]|
@@ -121,7 +120,7 @@ strategies
     apply-test(!"exc-2-test-5",
       exc-2,
       !bstm |[
-        if (true) { ; } else;
+        if (true) { } else { }
         ]|
     );
 
@@ -167,6 +166,15 @@ strategies
         if (true) zzz;
         else mmm;
         ]|
+    );
+
+    apply-and-fail(!"exc-2-test-11",
+      exc-2,
+      !bstm |[
+        if (true) {
+          ;
+        } else mmm;
+        ]|
     )
 
   exc-3-test =
@@ -181,7 +189,7 @@ strategies
     apply-test(!"exc-3-test-2",
       exc-3,
       !e |[
-        zomaar = true
+        zomaar == true
         ]|
     );
 
@@ -617,7 +625,8 @@ strategies
 
     apply-test(!"exc-12-test-2",
       exc-12,
-      !Try(Block([]),[Catch(Param([],ClassOrInterfaceType(TypeName(Id("E")),None),Id("e")),Block([Empty]))])
+      !Try(Block([]),[Catch(Param([],ClassOrInterfaceType(TypeName(Id("E")),None),Id("e")),Block([Empty])),
+        Catch(Param([],ClassOrInterfaceType(TypeName(Id("E")),None),Id("e")),Block([]))])
     );
 
     apply-and-fail(!"exc-12-test-3",
@@ -633,18 +642,31 @@ strategies
 
     apply-test(!"exc-12-test-5",
       exc-12,
-      !Try(Block([]),[],Block([ExprStm(Invoke(Method(MethodName(Id("m"))),[]))]))
+      !Try(Block([]),[Catch(Param([],ClassOrInterfaceType(TypeName(Id("E")),None),Id("e")),Block([])),
+        Catch(Param([],ClassOrInterfaceType(TypeName(Id("E")),None),Id("e")),Block([])),
+        Catch(Param([],ClassOrInterfaceType(TypeName(Id("E")),None),Id("e")),Block([]))])
     );
 
     apply-test(!"exc-12-test-6",
       exc-12,
       !Try(Block([]),[Catch(Param([],ClassOrInterfaceType(TypeName(Id("E")),None),Id("e")),
-        Block([ExprStm(ExprName(Id("m")))])),Catch(Param([],ClassOrInterfaceType(TypeName(Id("A")),None),Id("e")),Block([]))])
+        Block([])),Catch(Param([],ClassOrInterfaceType(TypeName(Id("A")),None),Id("e")),Block([ExprStm(ExprName(Id("m")))]))])
     );
 
     apply-and-fail(!"exc-12-test-7",
       exc-12,
       !ExprStm(Invoke(Method(MethodName(Id("m"))),[]))
+    );
+
+    apply-and-fail(!"exc-12-test-8",
+      exc-12,
+      !Try(Block([]),[])
+    );
+
+    apply-and-fail(!"exc-12-test-9",
+      exc-12,
+      !Try(Block([]),[],
+        Block([ExprStm(Invoke(Method(MethodName(Id("m"))),[]))]))
     )
 
   exc-13-test =
