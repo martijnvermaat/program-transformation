@@ -173,32 +173,44 @@ strategies
 
     apply-test(!"exc-3-test-1",
       exc-3,
-      !Eq(Lit(Bool(True)),ExprName(Id("x")))
+      !e |[
+        true == jaja
+        ]|
     );
 
     apply-test(!"exc-3-test-2",
       exc-3,
-      !Eq(ExprName(Id("x")),Lit(Bool(True)))
+      !e |[
+        zomaar = true
+        ]|
     );
 
     apply-test(!"exc-3-test-3",
       exc-3,
-      !Eq(Lit(Bool(True)),Lit(Bool(True)))
+      !e |[
+        true == true
+        ]|
     );
 
     apply-test(!"exc-3-test-4",
       exc-3,
-      !Eq(LazyOr(Invoke(Method(MethodName(Id("m"))),[]),ExprName(Id("x"))),Lit(Bool(True)))
+      !e |[
+        (zo() || erslfd) == true
+        ]|
     );
 
     apply-and-fail(!"exc-3-test-5",
       exc-3,
-      !Eq(LazyOr(Invoke(Method(MethodName(Id("m"))),[]),ExprName(Id("x"))),Invoke(Method(MethodName(Id("z"))),[]))
+      !e |[
+        (zoaer() || ersfs) == erdfds()
+        ]|
     );
 
     apply-and-fail(!"exc-3-test-6",
       exc-3,
-      !Eq(Lit(Bool(False)),Lit(Bool(False)))
+      !e |[
+        false == false
+        ]|
     )
 
   exc-4-test =
@@ -480,33 +492,90 @@ strategies
 
     apply-test(!"exc-10-test-1",
       exc-10,
-      !MethodDec(MethodDecHead([],None,Void,Id("foo"),[],None),Block([ExprStm(Invoke(Method(MethodName(Id("bar"))),[])),
-        Return(Some(ExprName(Id("x"))))])),
-      !Return(Some(ExprName(Id("x"))))
+      !class-body-dec |[
+        void foo() {
+          bar();
+          return xvar;
+        }
+        ]|,
+      !bstm |[
+        return xvar;
+        ]|
     );
 
     apply-test(!"exc-10-test-2",
       exc-10,
-      !MethodDec(MethodDecHead([Public,Static],None,Void,Id("main"),[Param([],ArrayType(ClassOrInterfaceType(TypeName(Id("String")),None)),
-        Id("args"))],None),Block([ExprStm(Invoke(Method(MethodName(Id("bar"))),[])),If(ExprName(Id("x")),Block([Return(Some(ExprName(Id("x"))))]),
-        Block([Return(Some(Invoke(Method(MethodName(Id("m"))),[])))]))])),
-      !If(ExprName(Id("x")),Block([Return(Some(ExprName(Id("x"))))]),Block([Return(Some(Invoke(Method(MethodName(Id("m"))),[])))]))
+      !class-body-dec |[
+        public static void main (String[] args) {
+          bar();
+          if (xvar) {
+            return xvar;
+          } else {
+            return maa();
+          }
+        }
+        ]|,
+      !bstm |[
+        if (xvar) {
+          return xvar;
+        } else {
+          return maa();
+        }
+        ]|
     );
 
-    apply-test(!"exc-10-test-3",
+    apply-and-fail(!"exc-10-test-3",
       exc-10,
-      !ConstrDec(ConstrDecHead([Public],None,Id("foo"),[],None),ConstrBody(None,[Empty])),
-      !Empty
+      !class-body-dec |[
+        private String mijnM(String sss) ;
+        ]|
     );
 
     apply-and-fail(!"exc-10-test-4",
       exc-10,
-      !ConstrDec(ConstrDecHead([Public],None,Id("foo"),[],None),ConstrBody(None,[]))
+      !class-body-dec |[
+        private String mijnM(String sss) { }
+        ]|
     );
 
-    apply-and-fail(!"exc-10-test-5",
+    apply-test(!"exc-10-test-5",
       exc-10,
-      !ExprStm(Invoke(Method(MethodName(Id("m"))),[]))
+      !class-body-dec |[
+        private String mijnM(String sss) {
+          ;
+        }
+        ]|,
+      !bstm |[
+        ;
+        ]|
+    );
+
+    apply-test(!"exc-10-test-6",
+      last-from-list,
+      ![1, 2, 3, 4, 5],
+      !5
+    );
+
+    apply-test(!"exc-10-test-7",
+      last-from-list,
+      ![3],
+      !3
+    );
+
+    apply-test(!"exc-10-test-8",
+      last-from-list,
+      ![[2, 5], [1], [], [7, 3]],
+      ![7, 3]
+    );
+
+    apply-and-fail(!"exc-10-test-9",
+      last-from-list,
+      ![]
+    );
+
+    apply-and-fail(!"exc-10-test-10",
+      last-from-list,
+      !"zomaar"
     )
 
   exc-11-test =

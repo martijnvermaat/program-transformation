@@ -7,7 +7,7 @@ imports
 strategies
 
   main-pt2 =
-    io-wrap(exc-1)
+    io-wrap(exc-11)
 
 
 strategies
@@ -37,11 +37,11 @@ strategies
     try(removeEqTrue)
 
   exc-5 =
-       ? If(_, _)         ; noBlockIf
-    <+ ? If(_, _, _)      ; noBlockIfElse1
-    <+ ? If(_, _, _)      ; noBlockIfElse2
-    <+ ? DoWhile(_, _)    ; noBlockDoWhile
-    <+ ? ForEach(_, _, _) ; noBlockForEach
+       ? If(_, _)         ; no-block-if
+    <+ ? If(_, _, _)      ; no-block-if-else1
+    <+ ? If(_, _, _)      ; no-block-if-else2
+    <+ ? DoWhile(_, _)    ; no-block-do-while
+    <+ ? ForEach(_, _, _) ; no-block-for-each
 
   exc-6 =
        introBlockIf
@@ -60,10 +60,10 @@ strategies
     invertIfNot
 
   exc-10 =
-    id
+    ? MethodDec(MethodDecHead(_, _, _, _, _, _), Block( <last-from-list> ))
 
   exc-11 =
-    id
+    ![3, 2, 1, 2, 3, 1] ; exc-apply-first(\ 1 -> 4 \) 
 
   exc-12 =
     id
@@ -78,23 +78,29 @@ strategies
     id
 
 
-  noBlockIf =
+  no-block-if =
     not( ? If(_, Block(_)) )
 
-  noBlockIfElse1 =
+  no-block-if-else1 =
     not( ? If(_, Block(_), _) )
 
-  noBlockIfElse2 =
+  no-block-if-else2 =
     not( ? If(_, _, Block(_)) )
 
-  noBlockDoWhile =
+  no-block-do-while =
     not( ? DoWhile(Block(_), _) )
 
-  noBlockForEach =
+  no-block-for-each =
     not( ? ForEach(_, _, Block(_)) )
 
+  last-from-list =
+       ? [ e ] ; !e
+    <+ ? [ _ | t ] ; <last-from-list>t
+
   exc-apply-first(s) =
-    id
+       applyToFirstElement(s)
+    <+ ? [ e | t ] ; ! [e | <exc-apply-first(s)>t ]
+    <+ fail
 
 
 rules
@@ -102,11 +108,11 @@ rules
   removeEqTrue : Eq(Lit(Bool(True)), e) -> e
   removeEqTrue : Eq(e, Lit(Bool(True))) -> e
 
-  introBlockIf      : If(c, b)         -> If(c, Block([b]))         where(noBlockIf)
-  introBlockIfElse1 : If(c, i, e)      -> If(c, Block([i]), e)      where(noBlockIfElse1)
-  introBlockIfElse2 : If(c, i, e)      -> If(c, i, Block([e]))      where(noBlockIfElse2)
-  introBlockDoWhile : DoWhile(b, c)    -> DoWhile(Block([b]), c)    where(noBlockDoWhile)
-  introBlockForEach : ForEach(p, e, b) -> ForEach(p, e, Block([b])) where(noBlockForEach)
+  introBlockIf      : If(c, b)         -> If(c, Block([b]))         where(no-block-if)
+  introBlockIfElse1 : If(c, i, e)      -> If(c, Block([i]), e)      where(no-block-if-else1)
+  introBlockIfElse2 : If(c, i, e)      -> If(c, i, Block([e]))      where(no-block-if-else2)
+  introBlockDoWhile : DoWhile(b, c)    -> DoWhile(Block([b]), c)    where(no-block-do-while)
+  introBlockForEach : ForEach(p, e, b) -> ForEach(p, e, Block([b])) where(no-block-for-each)
 
   invertEqualsString :
     Invoke(Method(MethodName(AmbName(o), Id("equals"))), [Lit(String(s))])
@@ -119,3 +125,5 @@ rules
   invertNotEqual : NotEq(e1, e2) -> Eq(e1, e2)
 
   removeNot : Not(e) -> e
+
+  applyToFirstElement(s) : [ e | t ] -> [ <s>e | t ] where(<s>e)
