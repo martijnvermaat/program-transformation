@@ -620,53 +620,78 @@ strategies
 
     apply-test(!"exc-12-test-1",
       exc-12,
-      !Try(Block([]),[Catch(Param([],ClassOrInterfaceType(TypeName(Id("E")),None),Id("e")),Block([]))])
+      !bstm |[
+        try { }
+        catch (Etype javar) { }
+        ]|
     );
 
     apply-test(!"exc-12-test-2",
       exc-12,
-      !Try(Block([]),[Catch(Param([],ClassOrInterfaceType(TypeName(Id("E")),None),Id("e")),Block([Empty])),
-        Catch(Param([],ClassOrInterfaceType(TypeName(Id("E")),None),Id("e")),Block([]))])
+      !bstm |[
+        try { }
+        catch (Zomaar jaja) {
+          ;
+        }
+        catch (Geen eeen) { }
+        ]|
     );
 
     apply-and-fail(!"exc-12-test-3",
       exc-12,
-      !Try(Block([]),[Catch(Param([],ClassOrInterfaceType(TypeName(Id("E")),None),Id("e")),Block([ExprStm(ExprName(Id("m")))]))])
+      !bstm |[
+        try { }
+        catch (Want door) {
+          want;
+        }
+        ]|
     );
 
     apply-test(!"exc-12-test-4",
       exc-12,
-      !Try(Block([]),[Catch(Param([],ClassOrInterfaceType(TypeName(Id("E")),None),Id("e")),Block([]))],
-        Block([ExprStm(Invoke(Method(MethodName(Id("m"))),[]))]))
+      !bstm |[
+        try { }
+        catch (Wawa ddd) { }
+        finally {
+          vdra;
+        }
+        ]|
     );
 
     apply-test(!"exc-12-test-5",
       exc-12,
-      !Try(Block([]),[Catch(Param([],ClassOrInterfaceType(TypeName(Id("E")),None),Id("e")),Block([])),
-        Catch(Param([],ClassOrInterfaceType(TypeName(Id("E")),None),Id("e")),Block([])),
-        Catch(Param([],ClassOrInterfaceType(TypeName(Id("E")),None),Id("e")),Block([]))])
+      !bstm |[
+        try { }
+        catch (Uma dv) { }
+        catch (Jkm weee) { }
+        catch (Rers sdf) { }
+        ]|
     );
 
     apply-test(!"exc-12-test-6",
       exc-12,
-      !Try(Block([]),[Catch(Param([],ClassOrInterfaceType(TypeName(Id("E")),None),Id("e")),
-        Block([])),Catch(Param([],ClassOrInterfaceType(TypeName(Id("A")),None),Id("e")),Block([ExprStm(ExprName(Id("m")))]))])
+      !bstm |[
+        try { }
+        catch (Esc seee) { }
+        catch (Usdf eecc) {
+          ttm;
+        }
+        ]|
     );
 
     apply-and-fail(!"exc-12-test-7",
       exc-12,
-      !ExprStm(Invoke(Method(MethodName(Id("m"))),[]))
+      !bstm |[
+        mrrr();
+        ]|
     );
 
     apply-and-fail(!"exc-12-test-8",
       exc-12,
-      !Try(Block([]),[])
-    );
-
-    apply-and-fail(!"exc-12-test-9",
-      exc-12,
-      !Try(Block([]),[],
-        Block([ExprStm(Invoke(Method(MethodName(Id("m"))),[]))]))
+      !bstm |[
+        try { }
+        finally { }
+        ]|
     )
 
   exc-13-test =

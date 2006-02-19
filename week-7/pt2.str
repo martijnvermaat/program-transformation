@@ -7,7 +7,7 @@ imports
 strategies
 
   main-pt2 =
-    io-wrap(exc-11)
+    io-wrap(exc-13)
 
 
 strategies
@@ -101,11 +101,24 @@ strategies
   exc-11 =
     ![3, 2, 1, 2, 3, 1] ; exc-apply-first(\ 1 -> 4 \) 
 
+  /*
+    Succeed on try-catch(-finally) statement with one or more empty catch
+    clauses.
+  */
   exc-12 =
-    id
+    (
+        ? Try(_, catches)
+     <+ ? Try(_, catches, _)
+    )
+    ; <exc-apply-first( ? Catch(_, Block([])) )>catches
 
+  /*
+    Introduce stack traces in all empty catch clauses of a
+    try-catch(-finally). Fail if there are no empty catch clauses.
+  */
   exc-13 =
-    id
+      where(exc-12)
+    ; introStackTraces
 
   exc-14 =
     id
@@ -225,3 +238,19 @@ rules
   */
   applyToFirstElement(s) :
         [ e | t ] -> [ <s>e | t ] where(<s>e)
+
+  /*
+    Introduce a statement printing the stack trace in an empty catch clause.
+  */
+  introStackTrace :
+        Catch(Param(m, t, e), Block([])) ->
+        Catch(Param(m, t, e), Block([ExprStm(Invoke(Method(MethodName(AmbName(e), Id("printStackTrace"))), []))]))
+
+  /*
+    Introduce stack traces in all empty catch clauses of a
+    try-catch(-finally).
+  */
+  introStackTraces :
+        Try(b, catches)    -> Try(b, <map(try(introStackTrace))>catches)
+  introStackTraces :
+        Try(b, catches, f) -> Try(b, <map(try(introStackTrace))>catches, f)
