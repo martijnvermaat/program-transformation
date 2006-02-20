@@ -12,6 +12,10 @@ strategies
 
 strategies
 
+  /***************************************************************************
+    Excercise strategies
+  ***************************************************************************/
+
   /*
     Succeed if the current term is a Java control-flow statement.
   */
@@ -120,12 +124,33 @@ strategies
       where(exc-12)
     ; introStackTraces
 
+  /*
+    In a class declaration: rewrite all method definitions with the same name
+    as the class to constructor definitions.
+  */
   exc-14 =
-    id
+    repeat(fixConstructorMethod)
 
+  /*
+    Simple example showing difference between left choice and conditional
+    choice:
+
+      martijn@priscilla:~$ stratego-shell
+      stratego> s1 = id
+      stratego> s2 = fail
+      stratego> s3 = id
+      stratego> !4 ; (s1; s2 <+ s3)
+      4
+      stratego> !4 ; (s1 < s2 + s3)
+      command failed
+  */
   exc-15 =
     id
 
+
+  /***************************************************************************
+    Helping strategies
+  ***************************************************************************/
 
   /*
     Succeed on everything that's not a simple if-statement with a block.
@@ -177,6 +202,10 @@ strategies
 
 
 rules
+
+  /***************************************************************************
+    Helping rules
+  ***************************************************************************/
 
   /*
     Rewrite equality check of true to compared expression.
@@ -254,3 +283,27 @@ rules
         Try(b, catches)    -> Try(b, <map(try(introStackTrace))>catches)
   introStackTraces :
         Try(b, catches, f) -> Try(b, <map(try(introStackTrace))>catches, f)
+
+  /*
+    Rewrite probable erroneous method definition to constructor definition
+    when this seems to be what was meant (name of method is name of class).
+    Possible modifiers will just be copied, which is plain wrong in some cases
+    (think about a 'static' constructor). Return type is discarded, regardless
+    what it is (void or whatever).
+  */
+  fixConstructorMethod(|className) :
+        MethodDec(MethodDecHead(modifiers, typeparams, _, Id(className), params, throws), Block(body)) ->
+        ConstrDec(ConstrDecHead(modifiers, typeparams, Id(className), params, throws), ConstrBody(None, body))
+  fixConstructorMethod(|className) :
+        MethodDec(MethodDecHead(modifiers, typeparams, _, Id(className), params, throws), NoMethodBody) ->
+        ConstrDec(ConstrDecHead(modifiers, typeparams, Id(className), params, throws), ConstrBody(None, []))
+
+  /*
+    Rewrite one probable erroneous method definition to constructor definition
+    according to rules above.
+  */
+  fixConstructorMethod :
+        ClassDec(ClassDecHead(modifiers, Id(className), typeparams, super, interfaces), ClassBody(body)) ->
+        ClassDec(ClassDecHead(modifiers, Id(className), typeparams, super, interfaces), ClassBody(
+                <exc-apply-first(fixConstructorMethod(|className))>body
+        ))
