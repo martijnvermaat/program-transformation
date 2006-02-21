@@ -26,12 +26,15 @@ strategies
       * Invert If Not
       * Introduce Print Stack Trace
       * Resolve Method Constructor Confusion
-    We do a topdown, because some rewritings may introduce rewritable
-    constructs in children.
+    We do a bottomup traversal. Some rewrites may introduce new rewritable
+    constructs higher in the tree. The swapNotEqualIf rewrite however, may
+    introduce new removeEqTrue-rewritable expressions, so an additional
+    traversal down the children is needed in that case.
+    Yes, this could maybe more easily be done with a single innermost or
+    outermost strategy, but bottomup seems a lot more efficient.
   */
   exc-16 =
-    topdown-Java(
-      /* debug(!"ditherkenik"); */
+    bottomup-Java(
       repeat(
            removeEqTrue
         <+ introBlockIf
@@ -40,7 +43,9 @@ strategies
         <+ introBlockDoWhile
         <+ introBlockForEach
         <+ invertEqualsString
-        <+ swapNotEqualIf
+        <+   swapNotEqualIf
+/*         ; bottomup-Java(repeat(removeEqTrue)) */
+           ; try(If(removeEqTrue, id, id))
         <+ swapNotIf
         <+ introStackTraces
         <+ fixConstructorMethod

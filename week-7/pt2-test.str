@@ -1103,4 +1103,34 @@ strategies
           }
         }
         ]|
+    );
+
+    apply-test(!"exc-16-test-3",
+      exc-16,
+      !bstm |[
+        if (!(xvar != yvar) == true) {
+          if (mmm.equals("goed"))
+            mmm(aaa.equals("slecht"));
+        } else
+          "zozo".equals("neemaar");
+        ]|,
+      !bstm |[
+        if (xvar == yvar) {
+          if ("goed".equals(mmm)) {
+            mmm("slecht".equals(aaa));
+          }
+        } else {
+          "zozo".equals("neemaar");
+        }
+        ]|
+    );
+
+    apply-test(!"exc-16-test-4",
+      exc-16,
+      !e |[
+        (true == (abc == true)) == true
+        ]|,
+      !e |[
+        abc
+        ]|
     )
