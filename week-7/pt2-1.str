@@ -121,8 +121,7 @@ strategies
     try-catch(-finally). Fail if there are no empty catch clauses.
   */
   exc-13 =
-      where(exc-12)
-    ; introStackTraces
+    introStackTraces
 
   /*
     In a class declaration: rewrite all method definitions with the same name
@@ -280,9 +279,9 @@ rules
     try-catch(-finally).
   */
   introStackTraces :
-        Try(b, catches)    -> Try(b, <map(try(introStackTrace))>catches)
+        Try(b, catches)    -> Try(b, <map(try(introStackTrace))>catches)    where(<applyToFirstElement(introStackTrace)>catches)
   introStackTraces :
-        Try(b, catches, f) -> Try(b, <map(try(introStackTrace))>catches, f)
+        Try(b, catches, f) -> Try(b, <map(try(introStackTrace))>catches, f) where(<applyToFirstElement(introStackTrace)>catches)
 
   /*
     Rewrite probable erroneous method definition to constructor definition
