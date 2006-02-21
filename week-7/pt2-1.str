@@ -1,4 +1,4 @@
-module pt2
+module pt2-1
 imports
   Java-15
   libstrategolib
@@ -6,7 +6,7 @@ imports
 
 strategies
 
-  main-pt2 =
+  main-pt2-1 =
     io-wrap(exc-13)
 
 
