@@ -1,0 +1,54 @@
+module pt2-2
+imports
+  pt2-1
+  Java-15
+  libstrategolib
+
+
+strategies
+
+  main-pt2-2 =
+    io-wrap(exc-16)
+
+
+strategies
+
+  /***************************************************************************
+    Excercise strategies
+  ***************************************************************************/
+
+  /*
+    Succeed if the current term is a Java control-flow statement.
+  */
+  exc-16 =
+       ? If(e, s)
+    <+ ? If(e, s1, s2)
+    <+ ? While(e, s)
+    <+ ? Return(e)
+
+
+  /***************************************************************************
+    Helping strategies
+  ***************************************************************************/
+
+  /*
+    Succeed on everything that's not a simple if-statement with a block.
+  */
+  no-block-if-jajajajajaja =
+    not( ? If(_, Block(_)) )
+    <+ fail
+
+
+rules
+
+  /***************************************************************************
+    Helping rules
+  ***************************************************************************/
+
+  /*
+    Rewrite equality check of true to compared expression.
+  */
+  removeEqTrue-jajaja :
+        Eq(Lit(Bool(True)), e) -> e
+  removeEqTrue-jajaja :
+        Eq(e, Lit(Bool(True))) -> e

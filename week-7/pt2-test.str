@@ -1,5 +1,5 @@
 module pt2-test
-imports pt2-1 libstrategolib
+imports pt2-1 pt2-2 libstrategolib
 strategies
 
   main-pt2-test =
