@@ -19,7 +19,10 @@ strategies
         exc-13-test;
         exc-14-test;
         exc-16-test;
-        exc-17-test
+        exc-17-test;
+        exc-18-test;
+        exc-19-test;
+        exc-20-test
     )
 
   exc-1-test =
@@ -990,10 +993,10 @@ strategies
         ]|
     )
 
-  exc-16-test =
+  exc-16-18-test(s) =
 
-      apply-test(!"exc-16-test-1",
-      exc-16,
+      apply-test(!"exc-16-18-test-1",
+      s,
       !compilation-unit |[
         public class Foo {
           void f() {
@@ -1035,8 +1038,8 @@ strategies
         ]|
     );
 
-    apply-test(!"exc-16-test-2",
-      exc-16,
+    apply-test(!"exc-16-18-test-2",
+      s,
       !compilation-unit |[
         public class Foo {
           void f() {
@@ -1106,8 +1109,8 @@ strategies
         ]|
     );
 
-    apply-test(!"exc-16-test-3",
-      exc-16,
+    apply-test(!"exc-16-18-test-3",
+      s,
       !bstm |[
         if (!(xvar != yvar) == true) {
           if (mmm.equals("goed"))
@@ -1126,8 +1129,8 @@ strategies
         ]|
     );
 
-    apply-test(!"exc-16-test-4",
-      exc-16,
+    apply-test(!"exc-16-18-test-4",
+      s,
       !e |[
         (true == (abc == true)) == true
         ]|,
@@ -1136,16 +1139,217 @@ strategies
         ]|
     )
 
+  exc-16-test =
+    exc-16-18-test(exc-16)
+
   exc-17-test =
     id
 
+  exc-18-test =
+    exc-16-18-test(exc-18)
 
-signature
-  constructors
-    DeclaringClass : Type -> Attribute
-    
-strategies
+  exc-19-test =
+    id
 
-  declaring-class-attr = 
-    ?_{a*}
-    ; <fetch-elem(?DeclaringClass(<id>))> a*
+  exc-20-test =
+
+    apply-test(!"exc-20-test-1",
+      exc-20,
+      !compilation-unit |[
+        class Fred {
+
+          boolean error;
+
+          int g() {
+            if(error)
+              throw new IllegalStateException();
+            else
+              return 4;
+          }
+
+          int f() {
+            try {
+              return g();
+            } finally {
+              return 5;
+            }
+          }
+
+        }
+        ]|,
+      !Return(Some(Lit(Deci("4")))){}                         => ret1 ;
+      !Return(Some(Invoke(Method(MethodName(Id("g"))),[]))){} => ret2 ;
+      !Return(Some(Lit(Deci("5")))){"Error"}                  => ret3 ;
+      !compilation-unit |[
+        class Fred {
+
+          boolean error;
+
+          int g() {
+            if(error)
+              throw new IllegalStateException();
+            else
+              ~ret1
+          }
+
+          int f() {
+            try {
+              ~ret2
+            } finally {
+              ~ret3
+            }
+          }
+
+        }
+        ]|
+    );
+
+    apply-test(!"exc-20-test-2",
+      exc-20,
+      !compilation-unit |[
+        class Fred {
+          int f() {
+            try {
+              return g();
+            }
+            finally {
+              class Bla { 
+                void test() {
+                  return 6;
+                }
+              }
+              return 5;
+            }
+          }
+        }
+        ]|,
+      !Return(Some(Invoke(Method(MethodName(Id("g"))),[]))){} => reta ;
+      !Return(Some(Lit(Deci("6")))){}                         => retb ;
+      !Return(Some(Lit(Deci("5")))){"Error"}                  => retc ;
+      !compilation-unit |[
+        class Fred {
+          int f() {
+            try {
+              ~reta
+            }
+            finally {
+              class Bla { 
+                void test() {
+                  ~retb
+                }
+              }
+              ~retc
+            }
+          }
+        }
+        ]|
+    );
+
+    apply-test(!"exc-20-test-3",
+      annotateReturn,
+      !bstm |[
+        return 6;
+        ]|,
+      !Return(Some(Lit(Deci("6")))){"Error"}
+    );
+
+    apply-and-fail(!"exc-20-test-4",
+      annotateReturn,
+      !Return(Some(Lit(Deci("6")))){"Error"}
+    );
+
+    apply-test(!"exc-20-test-5",
+      exc-20,
+      !compilation-unit |[
+        class Fred {
+          int f() {
+            try {
+              return g();
+            }
+            finally {
+              hhh = new Object() { 
+                void test() {
+                  return 6;
+                }
+              };
+              return 5;
+            }
+          }
+        }
+        ]|,
+      !Return(Some(Invoke(Method(MethodName(Id("g"))),[]))){} => ret-a ;
+      !Return(Some(Lit(Deci("6")))){}                         => ret-b ;
+      !Return(Some(Lit(Deci("5")))){"Error"}                  => ret-c ;
+      !compilation-unit |[
+        class Fred {
+          int f() {
+            try {
+              ~ret-a
+            }
+            finally {
+              hhh = new Object() { 
+                void test() {
+                  ~ret-b
+                }
+              };
+              ~ret-c
+            }
+          }
+        }
+        ]|
+    );
+
+    apply-test(!"exc-20-test-6",
+      exc-20,
+      !compilation-unit |[
+        class Fred {
+          int f() {
+            try {
+              return 1;
+            }
+            finally {
+              class Bla { 
+                void test() {
+                  try {
+                    return 2;
+                  }
+                  finally {
+                    return 3;
+                  }
+                  return 4;
+                }
+              }
+              return 5;
+            }
+          }
+        }
+        ]|,
+      !Return(Some(Lit(Deci("1")))){}        => ret-1 ;
+      !Return(Some(Lit(Deci("2")))){}        => ret-2 ;
+      !Return(Some(Lit(Deci("3")))){"Error"} => ret-3 ;
+      !Return(Some(Lit(Deci("4")))){}        => ret-4 ;
+      !Return(Some(Lit(Deci("5")))){"Error"} => ret-5 ;
+      !compilation-unit |[
+        class Fred {
+          int f() {
+            try {
+              ~ret-1
+            }
+            finally {
+              class Bla { 
+                void test() {
+                  try {
+                    ~ret-2
+                  }
+                  finally {
+                    ~ret-3
+                  }
+                  ~ret-4
+                }
+              }
+              ~ret-5
+            }
+          }
+        }
+        ]|
+    )

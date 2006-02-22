@@ -8,13 +8,13 @@ imports
 strategies
 
   main-pt2-2 =
-    io-wrap(exc-17)
+    io-wrap(exc-20)
 
 
 strategies
 
   /***************************************************************************
-    Excercise strategies
+    Exercise strategies
   ***************************************************************************/
 
   /*
@@ -59,6 +59,52 @@ strategies
   exc-17 =
     bottomup-Java(
       try(replaceSymbolicConstant)
+    )
+
+  /*
+    Oh, I defined my own bottomup-Java for exc-16, so this exercise is not
+    much of a surprise now. Why a bottomup traversal was used is explained
+    above.
+  */
+  exc-18 =
+    bottomup(
+      repeat(
+           removeEqTrue
+        <+ introBlockIf
+        <+ introBlockIfElse1
+        <+ introBlockIfElse2
+        <+ introBlockDoWhile
+        <+ introBlockForEach
+        <+ invertEqualsString
+        <+   swapNotEqualIf
+/*         ; bottomup(repeat(removeEqTrue)) */
+           ; try(If(removeEqTrue, id, id))
+        <+ swapNotIf
+        <+ introStackTraces
+        <+ fixConstructorMethod
+      )
+    )
+
+  /*
+    A topdown traversal would also do here. Innermost or likewise is overkill
+    because no new rewritable constructs are introduced. A simple alltd would
+    not do however, since rewritable constructs may have rewritable constructs
+    as descendants.
+  */
+  exc-19 =
+    bottomup(
+      try(replaceSymbolicConstant)
+    )
+
+  /*
+    Use the special crafted traversal that applies the first strategy to all
+    Java constructs (do nothing) but the second to Java constructs inside a
+    finally clause (annotate return statements with "Error").
+  */
+  exc-20 =
+    topdown-full(
+      id,
+      try(annotateReturn)
     )
 
 
@@ -186,6 +232,24 @@ strategies
   innermost-Java(s) =
     bottomup(try(s; innermost-Java(s)))
 
+  /*
+    Do a standard topdown traversal applying f to all nodes, but switch to the
+    restricted environment when entering a finally clause.
+  */
+  topdown-full(f, r) =
+      f
+    ; (   Try(topdown-full(f, r), topdown-full(f, r), topdown-restricted(f, r))
+       <+ all(topdown-full(f, r)))
+
+  /*
+    Do a standard topdown traversal applying r to all nodes, but switch to the
+    full environment when entering a class body definition.
+  */
+  topdown-restricted(f, r) =
+      r
+    ; (   ClassBody(topdown-full(f, r))
+       <+ all(topdown-restricted(f, r)))
+
 
 rules
 
@@ -246,6 +310,16 @@ rules
         "West"    -> "WEST"
   constantFromString :
         "Center"  -> "CENTER"
+
+  /*
+    Annotate a Java Return statement with the string "Error". This rule
+    matches only a Return statement with no annotation. This prevents the rule
+    from being applied again and again. However, if there may be unrelated
+    annotations a little bit more sophisticated solution is required (though
+    it will still be shorter than this comment).
+  */
+  annotateReturn :
+        Return(e){} -> Return(e){"Error"}
 
 
 /*****************************************************************************
