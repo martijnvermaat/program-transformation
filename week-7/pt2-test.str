@@ -18,7 +18,8 @@ strategies
         exc-12-test;
         exc-13-test;
         exc-14-test;
-        exc-16-test
+        exc-16-test;
+        exc-17-test
     )
 
   exc-1-test =
@@ -1134,3 +1135,17 @@ strategies
         abc
         ]|
     )
+
+  exc-17-test =
+    id
+
+
+signature
+  constructors
+    DeclaringClass : Type -> Attribute
+    
+strategies
+
+  declaring-class-attr = 
+    ?_{a*}
+    ; <fetch-elem(?DeclaringClass(<id>))> a*

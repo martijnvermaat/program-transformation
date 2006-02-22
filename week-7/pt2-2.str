@@ -8,7 +8,7 @@ imports
 strategies
 
   main-pt2-2 =
-    io-wrap(exc-16)
+    io-wrap(exc-17)
 
 
 strategies
@@ -50,6 +50,15 @@ strategies
         <+ introStackTraces
         <+ fixConstructorMethod
       )
+    )
+
+  /*
+    Rewrite all strings to BorderLayout constants where they are an argument
+    of the javax.swing.JPanel.add method.
+  */
+  exc-17 =
+    bottomup-Java(
+      try(replaceSymbolicConstant)
     )
 
 
@@ -183,3 +192,72 @@ rules
   /***************************************************************************
     Helping rules
   ***************************************************************************/
+
+  /*
+    Rewrite string to BorderLayout constant if it is an argument of the
+    javax.swing.JPanel.add method.
+  */
+  replaceSymbolicConstant :
+          Invoke(
+            Method(MethodName(expr, Id("add"))),
+            [component, Lit(String([Chars(s)]))]
+          ){
+            type,
+            DeclaringClass(
+              ClassType(
+                TypeName(
+                  PackageName([Id("javax"), Id("swing")]),
+                  Id("JPanel")
+                ),
+                n
+              )
+            )
+          }
+        ->
+          Invoke(
+            Method(MethodName(expr, Id("add"))),
+            [component,
+             Field(TypeName(PackageName([Id("java"), Id("awt")]),
+                             Id("BorderLayout")), Id(c))]
+          ){
+            type,
+            DeclaringClass(
+              ClassType(
+                TypeName(
+                  PackageName([Id("javax"), Id("swing")]),
+                  Id("JPanel")
+                ),
+                n
+              )
+            )
+          }
+        where(<constantFromString>s => c)
+
+  /*
+    Rewrite string to BorderLayout constant.
+  */
+  constantFromString :
+        "North"   -> "NORTH"
+  constantFromString :
+        "East"    -> "EAST"
+  constantFromString :
+        "South"   -> "SOUTH"
+  constantFromString :
+        "West"    -> "WEST"
+  constantFromString :
+        "Center"  -> "CENTER"
+
+
+/*****************************************************************************
+    Make DeclaringClass constructor available
+*****************************************************************************/
+
+signature
+  constructors
+    DeclaringClass : Type -> Attribute
+    
+strategies
+
+  declaring-class-attr = 
+    ?_{a*}
+    ; <fetch-elem(?DeclaringClass(<id>))> a*
