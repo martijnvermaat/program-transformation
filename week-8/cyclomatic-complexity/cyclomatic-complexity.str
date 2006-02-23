@@ -1,0 +1,30 @@
+module cyclomatic-complexity
+imports
+  libstrategolib
+  Java-15
+
+strategies
+
+  main =
+    io-wrap(
+      collect-om(?MethodDec(_, _))
+      ; map(cyclomatic-complexity-metric)
+    )
+
+strategies
+
+  cyclomatic-complexity-metric =
+    ?MethodDec(MethodDecHead(_, _, _, Id(x), _, _), <id>)
+    ; cyclomatic-complexity
+    ; !(x, <id>)
+
+  /**
+   * Define this stategy
+   * todo: use mapfold maybe (differentiate between constructs)
+   */
+  cyclomatic-complexity =
+    occurrences(is-control-flow)
+
+  is-control-flow =
+    ?c#(_)
+    ; <elem>(c, ["If", "AssertStm", "While", "Throw", "Return"])

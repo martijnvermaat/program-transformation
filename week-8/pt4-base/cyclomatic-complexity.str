@@ -1,0 +1,25 @@
+module cyclomatic-complexity
+imports
+  libstrategolib
+  Java-15
+  
+strategies
+
+  main =
+    io-wrap(
+      collect-om(?MethodDec(_, _))
+      ; map(cyclomatic-complexity-metric)
+    )
+
+strategies
+
+  cyclomatic-complexity-metric =
+    ?MethodDec(MethodDecHead(_, _, _, Id(x), _, _), <id>)
+    ; cyclomatic-complexity
+    ; !(x, <id>)
+
+  /**
+   * Define this stategy
+   */
+  cyclomatic-complexity =
+    !0

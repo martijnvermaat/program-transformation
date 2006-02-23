@@ -1,0 +1,43 @@
+module npath-metric
+imports
+  libstrategolib
+  Java-15
+  java-typematch
+  
+strategies
+
+  main =
+    io-wrap(
+      collect-om(?MethodDec(_, _))
+      ; map(npath-complexity-metric)
+    )
+
+  npath-complexity-metric =
+    ?MethodDec(MethodDecHead(_, _, _, Id(x), _, _), <id>)
+    ; npath-complexity
+    ; !(x, <id>)
+
+strategies
+
+  /**
+   * Define this strategy
+   */
+  npath-complexity =
+    !0
+
+  is-control-flow =
+      ?If(_, _)
+    + ?If(_, _, _)
+    + ?While(_, _)
+    + ?For(_, _, _, _)
+
+rules
+
+  AddPaths :
+    If(_, _) -> 1
+
+  AddPaths :
+    While(_, _) -> 1
+
+  AddPaths :
+    For(_, _, _, _) -> 1
