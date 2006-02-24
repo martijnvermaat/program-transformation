@@ -27,4 +27,4 @@ strategies
 
   is-control-flow =
     ?c#(_)
-    ; <elem>(c, ["If", "AssertStm", "While", "Throw", "Return"])
+    ; <elem>(c, ["If", "AssertStm", "While", "DoWhile", "For", "ForEach", "Case"])
