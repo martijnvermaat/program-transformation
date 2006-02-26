@@ -1,0 +1,70 @@
+module npath-metric
+imports
+  libstrategolib
+  Java-15
+  java-typematch
+  
+strategies
+
+  main-npath =
+    io-wrap(
+      collect-om(?MethodDec(_, _))
+      ; map(npath-complexity-metric)
+    )
+
+  /**
+   * Calculate npath complexity metric of method declaration and return a
+   * tuple with the method name and npath complexity.
+   */
+  npath-complexity-metric =
+    ?MethodDec(MethodDecHead(_, _, _, Id(x), _, _), <id>)
+    ; npath-complexity
+    ; !(x, <id>)
+
+strategies
+
+  /**
+   * Calculate npath complexity by considering four cases.
+   */
+  npath-complexity =
+    block-complexity
+    <+ control-flow-complexity
+    <+ block-stm-complexity
+    <+ default-complexity
+
+  is-control-flow =
+      ?If(_, _)
+    + ?If(_, _, _)
+    + ?While(_, _)
+    + ?For(_, _, _, _)
+
+  block-complexity =
+    ?Block(s)
+    ; <foldr(!1, mul, npath-complexity)>s
+
+  control-flow-complexity =
+    is-control-flow
+    ; where(add-paths => p)
+    ; crush(!p, add, npath-complexity)
+
+  block-stm-complexity =
+    is-BlockStm
+    ; !1
+
+  default-complexity =
+    crush(!0, add, npath-complexity)
+
+  add-paths =
+    AddPaths
+    <+ !0
+
+rules
+
+  AddPaths :
+    If(_, _) -> 1
+
+  AddPaths :
+    While(_, _) -> 1
+
+  AddPaths :
+    For(_, _, _, _) -> 1

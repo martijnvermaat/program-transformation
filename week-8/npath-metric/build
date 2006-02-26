@@ -1,0 +1,4 @@
+#!/bin/bash
+
+strc -i npath-metric.str -la stratego-lib -I ~/.nix-profile/share/java-front -m main-npath
+strc -i test.str -la stratego-lib -m main-npath-test -I ~/.nix-profile/share/sdf/java-front -I ~/.nix-profile/share/java-front

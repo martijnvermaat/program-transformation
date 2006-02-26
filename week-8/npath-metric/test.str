@@ -1,0 +1,130 @@
+module test
+imports npath-metric libstrategolib
+strategies
+
+  main-npath-test =
+    test-suite(!"npat-metric-test",
+        npath-metric-test
+    )
+
+  npath-metric-test =
+
+    apply-test(!"npath-metric-test-1",
+      npath-complexity,
+      !stm |[
+        { }
+        ]|,
+      !1
+    );
+
+    apply-test(!"npath-metric-test-2",
+      npath-complexity,
+      !stm |[
+        {
+          if (true) {
+            hoi();
+          }
+        }
+        ]|,
+      !2
+    );
+
+    apply-test(!"npath-metric-test-3",
+      npath-complexity,
+      !stm |[
+        {
+          if (true) {
+            hoi();
+          } else {
+            hoi();
+          }
+        }
+        ]|,
+      !2
+    );
+
+    apply-test(!"npath-metric-test-4",
+      npath-complexity,
+      !stm |[
+        {
+          if (true) mmm;
+          if (false) jjj;
+          if (ja)
+            zooo;
+          else
+            zzzz;
+        }
+        ]|,
+      !8
+    );
+
+    apply-test(!"npath-metric-test-5",
+      npath-complexity,
+      !stm |[
+        {
+          if(1 > 2)
+            return 0;
+          else
+            if(3 < 4)
+              return 1;
+            else
+              return 2;
+
+          if(5 > 6)
+            return 3;
+        }
+        ]|,
+      !6
+    );
+
+    apply-test(!"npath-metric-test-6",
+      npath-complexity,
+      !stm |[
+        {
+          for(int iii=0; iii<5; iii++) {
+          }
+        }
+        ]|,
+      !2
+    );
+
+    apply-test(!"npath-metric-test-7",
+      npath-complexity,
+      !stm |[
+        {
+          if (ac == bc)  {
+            if (ac1 == bc1) {
+              fiddle();
+            } else if (ac2 == bc2) {
+              fiddle();
+            } else {
+              fiddle();
+            }
+          } else if (cq == dq) {
+            while (cq == dq) {
+              fiddle();
+            }
+          } else if (eq == fq) {
+            for (int nrr = 0; nrr < hrr; nrr++) {
+              fiddle();
+            }
+          } else {
+            switch (zee) {
+              case 1:
+                    fiddle();
+                    break;
+              case 2:
+                    fiddle();
+                    break;
+              case 3:
+                    fiddle();
+                    break;
+              default:
+                    fiddle();
+                    break;
+            }
+          }
+        }
+        ]|,
+      !8
+    )

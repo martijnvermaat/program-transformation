@@ -44,4 +44,7 @@ strategies
         "DoWhile",
         "For",
         "ForEach",
-        "Case"])
+        "Case",
+        "LazyAnd",
+        "LazyOr",
+        "Cond"])
