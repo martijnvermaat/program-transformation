@@ -1,0 +1,129 @@
+module test
+imports cyclomatic-complexity libstrategolib
+strategies
+
+  main-cc-test =
+    test-suite(!"cyclomatic-complexity-test",
+        cyclomatic-complexity-test
+    )
+
+  cyclomatic-complexity-test =
+
+    apply-test(!"cyclomatic-complexity-test-1",
+      cyclomatic-complexity,
+      !class-body-dec |[
+        void mmm() { }
+        ]|,
+      !1
+    );
+
+    apply-test(!"cyclomatic-complexity-test-2",
+      cyclomatic-complexity,
+      !class-body-dec |[
+        void test() {
+          if (true) {
+            hoi();
+          }
+        }
+        ]|,
+      !2
+    );
+
+    apply-test(!"cyclomatic-complexity-test-3",
+      cyclomatic-complexity,
+      !class-body-dec |[
+        void test() {
+          if (true) {
+            hoi();
+          } else {
+            hoi();
+          }
+        }
+        ]|,
+      !2
+    );
+
+    apply-test(!"cyclomatic-complexity-test-4",
+      cyclomatic-complexity,
+      !class-body-dec |[
+        void test() {
+          switch(iii) {
+            case 1: mmm;
+            case 2: hhh;
+            case 8: nnn;
+          }
+        }
+        ]|,
+      !4
+    );
+
+    apply-test(!"cyclomatic-complexity-test-5",
+      cyclomatic-complexity,
+      !class-body-dec |[
+        public int foo() {
+          if(1 > 2)
+            return 0;
+          else
+            if(3 < 4)
+              return 1;
+            else
+              return 2;
+
+          if(5 > 6)
+            return 3;
+        }
+        ]|,
+      !4
+    );
+
+    apply-test(!"cyclomatic-complexity-test-6",
+      cyclomatic-complexity,
+      !class-body-dec |[
+        public int bar() {
+          for(int iii=0; iii<5; iii++) {
+          }
+        }
+        ]|,
+      !2
+    );
+
+    apply-test(!"cyclomatic-complexity-test-7",
+      cyclomatic-complexity,
+      !class-body-dec |[
+        public void example()  {
+          if (ac == bc)  {
+            if (ac1 == bc1) {
+              fiddle();
+            } else if (ac2 == bc2) {
+              fiddle();
+            } else {
+              fiddle();
+            }
+          } else if (cq == dq) {
+            while (cq == dq) {
+              fiddle();
+            }
+          } else if (eq == fq) {
+            for (int nrr = 0; nrr < hrr; nrr++) {
+              fiddle();
+            }
+          } else {
+            switch (zee) {
+              case 1:
+                    fiddle();
+                    break;
+              case 2:
+                    fiddle();
+                    break;
+              case 3:
+                    fiddle();
+                    break;
+              default:
+                    fiddle();
+                    break;
+            }
+          }
+        }
+        ]|,
+      !11
+    )

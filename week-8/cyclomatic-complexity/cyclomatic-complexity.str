@@ -5,7 +5,7 @@ imports
 
 strategies
 
-  main =
+  main-cc =
     io-wrap(
       collect-om(?MethodDec(_, _))
       ; map(cyclomatic-complexity-metric)
@@ -13,18 +13,35 @@ strategies
 
 strategies
 
+  /**
+   * Calculate cyclomatic complexity of method declaration and return a tuple
+   * with the method name and cyclomatic complexity.
+   */
   cyclomatic-complexity-metric =
     ?MethodDec(MethodDecHead(_, _, _, Id(x), _, _), <id>)
     ; cyclomatic-complexity
     ; !(x, <id>)
 
   /**
-   * Define this stategy
-   * todo: use mapfold maybe (differentiate between constructs)
+   * Count number of decision points and increment the result.
    */
   cyclomatic-complexity =
-    occurrences(is-control-flow)
+    occurrences(is-decision-point)
+    ; <add>(<id>, 1)
 
-  is-control-flow =
+  /**
+   * Succeed on Java construct that introduces a decision point.
+   * For switch-case statements each case is considered a decision point,
+   * analoguous to a corresponding if-else sequence.
+   */
+  is-decision-point =
     ?c#(_)
-    ; <elem>(c, ["If", "AssertStm", "While", "DoWhile", "For", "ForEach", "Case"])
+    ; <elem>(c, [
+        "If",
+        "AssertStm",
+        "Catch",
+        "While",
+        "DoWhile",
+        "For",
+        "ForEach",
+        "Case"])

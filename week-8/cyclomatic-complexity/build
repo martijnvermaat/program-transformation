@@ -1,3 +1,4 @@
 #!/bin/bash
 
-strc -i cyclomatic-complexity.str -la stratego-lib -I ~/.nix-profile/share/java-front
+strc -i cyclomatic-complexity.str -la stratego-lib -I ~/.nix-profile/share/java-front -m main-cc
+strc -i test.str -la stratego-lib -m main-cc-test -I ~/.nix-profile/share/sdf/java-front -I ~/.nix-profile/share/java-front
