@@ -45,47 +45,50 @@ strategies
    * Define this strategy.
    */
   collect-uncaught-exceptions =
-    /* declared exceptions */
-/*
-    (
-        ?MethodDec(MethodDecHead(_, _, _, _, _, Some(ThrowsDec(declared))), _)
-        <+ ![] => declared
-    )
-*/
-    collect-thrown(|[])
-    /* take all throwing constructs */
-/*    ; collect-all(?Invoke(_, _) + ?Throw(_))*/
+    collect-uncaught(|[])
 
-  collect-thrown(|guarded) =
-    (
-        ?Invoke(m, a)
-        ; compile-time-declaration-attr
-        ; lookup-method
-        ; get-declared-exception-types
-        ; filter(not(is-assignment-convertable-list(|guarded)))
-        ; <union>(
-                <id>,
-                <collect-thrown(|guarded)> (m, a)
-          )
-    )
-    <+ (
-        ?Throw(e)
-        ; <type-attr>e
-        ; (is-assignment-convertable-list(|guarded)
-           < ![]
-           + ![ <id> ])
-        ; <union>(<id>, <collect-thrown(|guarded)>e)
-    )
-    <+ (
-        ?Try(b, c)                      /* think about finally clause */
-        ; <collect-catched-exceptions>c => catched
-        ; <union>(
-                <collect-thrown(| <union>(guarded, catched) )> b,
-                <collect-thrown(|guarded)> c
-          )
-    )
-    <+ crush(![], union, collect-thrown(|guarded))
+  /* rewrite this without guarded argument (filter at Try case) */
 
+  collect-uncaught(|guarded) =
+    collect-uncaught-class(|guarded)
+    <+ collect-uncaught-invoke(|guarded)
+    <+ collect-uncaught-throw(|guarded)
+    <+ collect-uncaught-try(|guarded)
+    <+ collect-uncaught-default(|guarded)
+
+  collect-uncaught-class(|guarded) =
+    ?ClassBody(_)
+    ; ![]
+
+  collect-uncaught-invoke(|guarded) =
+    ?Invoke(m, a)
+    ; compile-time-declaration-attr
+    ; lookup-method
+    ; get-declared-exception-types
+    ; filter(not(is-assignment-convertable-list(|guarded)))
+    ; <union>(
+        <id>,
+        <collect-uncaught(|guarded)> (m, a)
+      )
+
+  collect-uncaught-throw(|guarded) =
+    ?Throw(e)
+    ; <type-attr>e
+    ; (is-assignment-convertable-list(|guarded)
+       < ![]
+       + ![ <id> ])
+    ; <union>(<id>, <collect-uncaught(|guarded)>e)
+
+  collect-uncaught-try(|guarded) =
+    ?Try(b, c)                      /* think about finally clause */
+    ; <collect-catched-exceptions>c => catched
+    ; <union>(
+        <collect-uncaught(| <union>(guarded, catched) )> b,
+        <collect-uncaught(|guarded)> c
+      )
+
+  collect-uncaught-default(|guarded) =
+    crush(![], union, collect-uncaught(|guarded))
 
   collect-catched-exceptions =
     map(exception-from-catch)
