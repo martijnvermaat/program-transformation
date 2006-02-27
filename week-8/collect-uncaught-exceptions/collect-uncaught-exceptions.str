@@ -45,7 +45,48 @@ strategies
    * Define this strategy.
    */
   collect-uncaught-exceptions =
-    ![]
+    /* declared exceptions */
+/*
+    (
+        ?MethodDec(MethodDecHead(_, _, _, _, _, Some(ThrowsDec(declared))), _)
+        <+ ![] => declared
+    )
+*/
+    collect-thrown(|[])
+    /* take all throwing constructs */
+/*    ; collect-all(?Invoke(_, _) + ?Throw(_))*/
+
+  collect-thrown(|guarded) =
+    (
+        ?Invoke(_, _)
+        ; ![]
+    )
+    <+ (
+        ?Throw(e)
+        ; <type-attr>e
+        ; (is-assignment-convertable-list(|guarded)
+           < ![]
+           + ![ <id> ])
+        ; <union>(<id>, <collect-thrown(|guarded)>e)
+    )
+    <+ (
+        ?Try(b, c)                      /* think about finally clause */
+        ; where(<collect-catched-exceptions>c => catched)
+        ; <union>(
+                <collect-thrown(| <union>(guarded, catched) )> b,
+                <collect-thrown(|guarded)> c
+          )
+    )
+    <+ crush(![], union, collect-thrown(|guarded))
+
+
+  collect-catched-exceptions =
+    map(exception-from-catch)
+
+  exception-from-catch =
+    ?Catch(Param(_, e, _), _)
+    ; !e
+
 
 /**
  * Util
