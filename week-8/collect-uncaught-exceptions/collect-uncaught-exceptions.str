@@ -1,0 +1,65 @@
+module collect-uncaught-exceptions
+imports
+  libdryad
+
+strategies
+
+  main =
+    where(init-config)
+    ; xtc-multi-io-wrap(
+        observables-wrap(
+          dryad-front
+          ; uncaught-exceptions
+        )
+      )
+
+  uncaught-exceptions =
+    collect-all(?MethodDec(_, _), conc)
+    ; map(print-uncaught-exceptions)
+    ; <xtc-exit> 0
+
+  print-uncaught-exceptions =
+    ?MethodDec(MethodDecHead(_, _, _, Id(x), _, _), _)
+    ; collect-uncaught-exceptions
+    ; say(!x)
+    ; if-verbose2(debug)
+    ; if ?[] then
+        say(!"  none ")
+      else
+        map(
+          collect-om(is-string, conc)
+          ; separate-by(|".")
+          ; !["  - " | <id>]
+          ; <fprintnl> (<stderr-stream>, <id>)
+        )
+      end
+
+  init-config =
+      <set-config> ("output-description", "Write resulting jtrees to files")
+    ; <set-config> ("input-description", "Process Java source in files")
+    ; <set-config> ("--tc", "on")
+
+strategies
+
+  /**
+   * Define this strategy.
+   */
+  collect-uncaught-exceptions =
+    ![]
+
+/**
+ * Util
+ */
+strategies
+
+  /**
+   * Succeeds if the current term is assignment convertable to one of the types ts.
+   *
+   * @param List(Type)
+   * @type  Type -> Type
+   */
+  is-assignment-convertable-list(|ts) =
+    ?t; where(
+      <fetch({to:
+         ?to; <is-assignment-convertable(|to)> t
+       })> ts)

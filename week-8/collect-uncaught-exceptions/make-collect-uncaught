@@ -1,0 +1,11 @@
+#! /bin/sh
+
+# Define some useful aliases for Stratego compilation
+shopt -s expand_aliases
+alias strcflags="pkg-config --variable=strcflags "
+alias strcxtcflags="pkg-config --variable=strcxtcflags "
+
+# Add the Nix profile to the search path of pkg-config
+export PKG_CONFIG_PATH=$HOME/.nix-profile/lib/pkgconfig:$PKG_CONFIG_PATH
+
+strc -i collect-uncaught-exceptions.str $(strcflags dryad) $(strcxtcflags dryad)
