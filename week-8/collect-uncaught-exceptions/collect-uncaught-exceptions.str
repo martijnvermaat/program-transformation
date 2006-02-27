@@ -58,8 +58,15 @@ strategies
 
   collect-thrown(|guarded) =
     (
-        ?Invoke(_, _)
-        ; ![]
+        ?Invoke(m, a)
+        ; compile-time-declaration-attr
+        ; lookup-method
+        ; get-declared-exception-types
+        ; filter(not(is-assignment-convertable-list(|guarded)))
+        ; <union>(
+                <id>,
+                <collect-thrown(|guarded)> (m, a)
+          )
     )
     <+ (
         ?Throw(e)
@@ -71,7 +78,7 @@ strategies
     )
     <+ (
         ?Try(b, c)                      /* think about finally clause */
-        ; where(<collect-catched-exceptions>c => catched)
+        ; <collect-catched-exceptions>c => catched
         ; <union>(
                 <collect-thrown(| <union>(guarded, catched) )> b,
                 <collect-thrown(|guarded)> c
