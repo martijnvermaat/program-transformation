@@ -1,0 +1,394 @@
+module run-java-tests
+imports run-java
+
+strategies
+
+  main-run-java-tests =
+    option-wrap(general-options,
+      test-suite(!"Java Interpeter",
+        observables-wrap(
+          constant-expression-tests
+        ; primitive-tests
+        ; assignment-tests
+        ; control-flow-tests
+        ; static-field-tests
+        ; static-method-invocation-tests
+        ; constructor-invocation-tests
+        ; instance-field-tests
+        ; instance-method-invocation-tests
+        )
+      )
+    )
+
+strategies
+
+  constant-expression-tests = id
+    ; run-java-test-expr(|"Literal value"
+      , "1"
+      , Lit(Deci("1"))
+      )
+    ; run-java-test-expr(|"Addition of two integers"
+      , "1 + 2"
+      , Lit(Deci("3"))
+      )
+    ; run-java-test-expr(|"Addition of three integers"
+      , "1 + 2 + 3"
+      , Lit(Deci("6"))
+      )
+    ; run-java-test-expr(|"Multiplication of two integers"
+      , "2 * 3"
+      , Lit(Deci("6"))
+      )
+    ; run-java-test-expr(|"Addition and multiplication"
+      , "2 * 3 + 4"
+      , Lit(Deci("10"))
+      )
+    ; run-java-test-expr(|"Conditional expression"
+      , "true ? 1 : 2"
+      , Lit(Deci("1"))
+      )
+    ; run-java-test-expr(|"Conditional expression"
+      , "false ? 1 : 2"
+      , Lit(Deci("2"))
+      )
+    ; run-java-test-expr(|"Less than operator"
+      , "1 < 2"
+      , Lit(Bool(True()))
+      )
+    ; run-java-test-expr(|"Greater than operator"
+      , "1 > 2"
+      , Lit(Bool(False()))
+      )
+    ; run-java-test-expr(|"Greater than or euqal operator"
+      , "1 >= 2"
+      , Lit(Bool(False()))
+      )
+    ; run-java-test-expr(|"Less than or equal operator"
+      , "1 <= 2"
+      , Lit(Bool(True()))
+      )
+
+strategies
+
+  primitive-tests = id      
+    ; run-java-test-stms(|"Less than or equal operator"
+      , "System.out.println(\"Hey\"); 0;"
+      , Lit(Deci("0"))
+      )
+
+
+strategies
+
+  assignment-tests = id
+    ; run-java-test-stms(|"Simple assignment"
+      , "int x = 2; x;"
+      , Lit(Deci("2"))
+      )
+    ; run-java-test-stms(|"Simple assignment"
+      , "int x = 2; x = 4; x;"
+      , Lit(Deci("4"))
+      )
+    ; run-java-test-stms(|"Simple assignment in block"
+      , "int x = 2; { x = 4;} x;"
+      , Lit(Deci("4"))
+      )
+    ; run-java-test-stms(|"Simple assignment as expression"
+      , "int x = 3; int y = x = 2; x + y;"
+      , Lit(Deci("4"))
+      )
+    ; run-java-test-stms(|"Simple assignment as expression"
+      , "int x = 3; x = (x = 2) + x; x;"
+      , Lit(Deci("4"))
+      )
+    ; run-java-test-stms(|"Simple assignment as expression"
+      , "int x = 3; x = x + (x = 2); x;"
+      , Lit(Deci("5"))
+      )
+
+strategies
+
+  control-flow-tests = id
+    ; run-java-test-stms(|"Simple if statement."
+      , "int x = 1; if(true) x = 2; x;"
+      , Lit(Deci("2"))
+      )
+    ; run-java-test-stms(|"Simple if statement."
+      , "int x = 1; if(false) x = 2; x;"
+      , Lit(Deci("1"))
+      )
+    ; run-java-test-stms(|"Simple if statement."
+      , "int x = 1; if(true) x = 2; else x = 3; x;"
+      , Lit(Deci("2"))
+      )
+    ; run-java-test-stms(|"Simple if statement."
+      , "int x = 1; if(false) x = 2; else x = 3; x;"
+      , Lit(Deci("3"))
+      )
+    ; run-java-test-stms(|"Simple while statement."
+      , "int x = 0; while(x < 7) { x = x + 1; } x;"
+      , Lit(Deci("7"))
+      )
+      
+strategies
+
+  static-field-tests = id
+    ; run-java-test-classbodydecs(|"Simple static field"
+      , "private static int x;"
+      , "x = 5; x = x + 2; x;"
+      , Lit(Deci("7"))
+      )
+    ; run-java-test-classbodydecs(|"Simple static field"
+      , "private static int x;
+         public static void foo() {
+           x = 13;
+         }      
+         "
+      , "foo(); x;"
+      , Lit(Deci("13"))
+      )
+    ; run-java-test(|"Simple static field"
+      , "class Foo {
+           private static int x;
+           
+           public static void foo() {
+             Foo.x = 14;
+           }      
+          
+           public static void main(String[] ps) {
+             foo();
+             Foo.x;
+           }
+         }
+         "
+      , Lit(Deci("14"))
+      )
+
+strategies
+
+  static-method-invocation-tests = id
+    ; run-java-test-classbodydecs(|"Simple static method"
+      , "public static void foo() {}"
+      , "foo();"
+      , Void()
+      )
+    ; run-java-test-classbodydecs(|"Simple static method with return value"
+      , "public static int foo() { return 2; }"
+      , "foo();"
+      , Lit(Deci("2"))
+      )
+    ; run-java-test-classbodydecs(|"Simple static method with argument"
+      , "public static int foo(int x) { return 3 + x; }"
+      , "foo(5);"
+      , Lit(Deci("8"))
+      )
+    ; run-java-test-classbodydecs(|"Simple static method with argument"
+      , "public static int foo(int x) { return 3 + x; }"
+      , "foo(5);"
+      , Lit(Deci("8"))
+      )
+      
+strategies
+
+  constructor-invocation-tests = id
+    ; run-java-test(|"Simple constructor invocation"
+      , "class Foo {
+           Foo() {
+             System.out.println(\"Hey!\");
+           }
+          
+           public static void main(String[] ps) {
+             Foo foo = new Foo();
+             0;
+           }
+         }
+         "
+      , Lit(Deci("0"))
+      )
+    ; run-java-test(|"Simple constructor invocation"
+      , "class Foo {
+           private static int x;
+           Foo() {
+             x = 5;
+           }
+          
+           public static void main(String[] ps) {
+             Foo foo = new Foo();
+             x;
+           }
+         }
+         "
+      , Lit(Deci("5"))
+      )
+      
+    ; run-java-test(|"Simple constructor invocation"
+      , "class Foo {
+           private static int x;
+           Foo(int y) {
+             x = y;
+           }
+          
+           public static void main(String[] ps) {
+             Foo foo = new Foo(7);
+             x;
+           }
+         }
+         "
+      , Lit(Deci("7"))
+      )
+
+strategies
+
+  instance-field-tests = id
+    ; run-java-test(|"Instance field"
+      , "class Foo {
+           public int x;
+           Foo() { x = 5; }
+           public static void main(String[] ps) {
+             Foo foo = new Foo();
+             foo.x;
+           }
+         }
+         "
+      , Lit(Deci("5"))
+      )  
+    ; run-java-test(|"Qualified instance field assignment"
+      , "class Foo {
+           public int x;
+           Foo() { this.x = 5; }
+           public static void main(String[] ps) {
+             Foo foo = new Foo();
+             foo.x;
+           }
+         }
+         "
+      , Lit(Deci("5"))
+      )        
+    ; run-java-test(|"Instance field"
+      , "class Foo {
+           public int x;
+           Foo() {}
+           public static void main(String[] ps) {
+             Foo foo = new Foo();
+             foo.x = 5;
+             foo.x = foo.x + 7;
+             foo.x;
+           }
+         }
+         "
+      , Lit(Deci("12"))
+      )  
+    ; run-java-test(|"Instance fields and multiple objects"
+      , "class Foo {
+           public int x;
+           Foo(int x) { this.x = x; }
+           public static void main(String[] ps) {
+             Foo foo1 = new Foo(2);
+             Foo foo2 = new Foo(7);
+             foo1.x + foo2.x;
+           }
+         }
+         "
+      , Lit(Deci("9"))
+      )
+      
+strategies
+
+  instance-method-invocation-tests = id
+    ; run-java-test(|"Instance method invocation 1"
+      , "class Foo {
+           Foo() {}
+           public int bar() { return 37; }
+           public static void main(String[] ps) {
+             Foo foo = new Foo();
+             foo.bar();
+           }
+         }
+         "
+      , Lit(Deci("37"))
+      )    
+    ; run-java-test(|"Instance method invocation 2"
+      , "class Foo {
+           Foo() {}
+           public int fred() { return 37; }           
+           public int bar() { return fred(); }
+           public static void main(String[] ps) {
+             Foo foo = new Foo();
+             foo.bar();
+           }
+         }
+         "
+      , Lit(Deci("37"))
+      )    
+    ; run-java-test(|"Instance method invocation 3"
+      , "class Foo {
+           private int x;
+           Foo(int y) { x = y; }
+           public int bar() { return x; }
+           public static void main(String[] ps) {
+             Foo foo = new Foo(37);
+             foo.bar();
+           }
+         }
+         "
+      , Lit(Deci("37"))
+      ) 
+    ; run-java-test(|"Instance method invocation 4"
+      , "class Foo {
+           private int x;
+           Foo(int y) { x = y; }
+           public int bar(int z) { return x + z; }
+           public static void main(String[] ps) {
+             Foo foo = new Foo(37);
+             foo.bar(3);
+           }
+         }
+         "
+      , Lit(Deci("40"))
+      )      
+
+strategies
+
+  /**
+   * Source: expression
+   */
+  run-java-test-expr(|msg, src, result) =
+    run-java-test-stms(|msg 
+    , <concat-strings> [src, ";"]
+    , result
+    )
+
+  /**
+   * Source: list of statements.
+   */
+  run-java-test-stms(|msg, src, result) =
+    run-java-test-classbodydecs(|msg, "", src, result)
+
+  /**
+   * Source: list of class body declarations
+   */
+  run-java-test-classbodydecs(|msg, src, srcmain, result) =
+    run-java-test(|msg
+    , <concat-strings> [
+        "class Foo { "
+      , src
+      , "public static void main(String[] ps) {"
+      , srcmain
+      , "}}"
+      ]
+    , result
+    )
+
+  /**
+   * Source: compilation unit
+   */
+  run-java-test(|msg, src, result) =
+    apply-test(!msg
+    , run-java
+      ; try(?Block(<id>))
+      ; if is-list then last end
+      ; try(?ExprStm(<id>))
+      ; try(\ Return(None()) -> Void() \)
+      ; rm-annotations
+    , <print-to> [src]; ![<id>]
+    , !result
+    )

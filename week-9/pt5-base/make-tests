@@ -1,0 +1,9 @@
+#! /bin/sh
+
+# Add the Nix profile to the search path of pkg-config
+export PKG_CONFIG_PATH=$HOME/.nix-profile/lib/pkgconfig:$PKG_CONFIG_PATH
+
+XTCFLAGS="$(pkg-config --variable=strcxtcflags dryad)"
+STRCFLAGS="$(pkg-config --variable=strcflags dryad)"
+
+strc -i run-java-tests.str -m main-run-java-tests $XTCFLAGS $STRCFLAGS --format-check -1
