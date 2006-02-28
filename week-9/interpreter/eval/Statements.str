@@ -1,0 +1,14 @@
+module eval/Statements
+imports 
+  libdryad
+  eval/Expressions
+  eval/Primitive
+  eval/Rules
+
+strategies
+
+  /**
+   * Stub
+   */
+  eval-stat =
+    Block([ExprStm(eval-exp)])

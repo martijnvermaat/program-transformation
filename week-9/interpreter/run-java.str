@@ -1,0 +1,72 @@
+/**
+ * An interpreter for Java programs.
+ */
+module run-java
+imports
+  libdryad
+  eval/Statements
+
+strategies
+
+  main-run-java =
+    xtc-multi-io-wrap(
+      log-timed(observables-wrap(run-java)| "main-run-java", 0)
+      ; <exit> 0
+    )
+    
+  /**
+   * Intepreters a Java
+   * 
+   * @type List(FILE) -> List(CompilationUnit Object)
+   */
+  run-java =
+    log-timed(process-input-sources | "process-input-sources", 0)
+    // assumption: main method is in first compilation unit
+    ; ?[<id> | _]
+    ; get-type-declarations
+    // assumption: there is a single class in a compilation unit
+    ; ?[<id> | _]
+    ; get-main-method
+    ; bootstrap-eval-static-method-invocation
+
+strategies
+
+  /**
+   * Loads Java source files in the Dryad repository.
+   *
+   * @type List(FILE) -> List(CompilationUnit Object)
+   */
+  process-input-sources =
+    parse-java
+    ; map(define-compilation-unit)
+    ; dryad-reclassify
+    ; map(dryad-type-checker)
+
+  /**
+   * Returns the main method given a class
+   *
+   * @type Class Object -> Method Object
+   */
+  get-main-method =
+    get-declared-methods(|"main")
+    ; retain-all(
+        where(get-return-type => Void())
+      ; where(get-formal-parameter-types => [ArrayType(TString())])
+      ; where(get-access => Public())
+      )
+    ; ?[<id>]
+
+  /**
+   * Invokes a static method ignoring possible arguments.
+   *
+   * @type Method Object -> ?
+   */
+  bootstrap-eval-static-method-invocation =
+    get-reference-ast
+    ; ?MethodDec(_, <id>)
+    ; log-timed(eval-stat | "eval-stat", 0)
+
+overlays
+
+  TString =
+    ClassType(TypeName(PackageName([Id("java"), Id("lang")]), Id("String")), None())
