@@ -2,14 +2,21 @@ module eval/Expressions
 strategies
 
   eval-exp =
-    bottomup(
+    bottomup-exp(
       try(
            EvalVar
         <+ EvalBinOp
         <+ EvalCond
       )
     )
-    
+
+  bottomup-exp(s) =
+       Assign(ExprName(Id(id)), bottomup-exp(s))
+       ; ?Assign(ExprName(Id(var)), value)
+       ; rules( EvalVar.var : ExprName(Id(var)) -> value )
+    <+ all(bottomup-exp(s))
+       ; s
+
 signature
   constructors
     Ref : String -> Ref
