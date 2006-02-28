@@ -1,3 +1,23 @@
 module eval/Rules
 imports
   libdryad
+
+/**
+ * Expressions
+ */
+rules
+
+  EvalBinOp :
+        Plus(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Deci(r)) where (<addS>(i1, i2) => r)
+
+  EvalBinOp :
+        Minus(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Deci(r)) where (<subtS>(i1, i2) => r)
+
+  EvalBinOp :
+        Mul(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Deci(r)) where (<mulS>(i1, i2) => r)
+
+  EvalCond :
+        Cond(Lit(Bool(True)), e1, e2) -> e1
+
+  EvalCond :
+        Cond(Lit(Bool(False)), e1, e2) -> e2

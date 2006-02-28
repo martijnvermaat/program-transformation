@@ -2,7 +2,13 @@ module eval/Expressions
 strategies
 
   eval-exp =
-    id
+    bottomup(
+      try(
+           EvalVar
+        <+ EvalBinOp
+        <+ EvalCond
+      )
+    )
     
 signature
   constructors

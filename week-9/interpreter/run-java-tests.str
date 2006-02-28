@@ -84,6 +84,10 @@ strategies
       , "int x = 2; x;"
       , Lit(Deci("2"))
       )
+    ; run-java-test-stms(|"Simple assignment of expression"
+      , "int x = 2+1; x;"
+      , Lit(Deci("3"))
+      )
     ; run-java-test-stms(|"Simple assignment"
       , "int x = 2; x = 4; x;"
       , Lit(Deci("4"))
