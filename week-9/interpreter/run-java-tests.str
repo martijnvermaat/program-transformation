@@ -10,6 +10,7 @@ strategies
           constant-expression-tests
         ; primitive-tests
         ; assignment-tests
+        ; block-scope-tests
         ; control-flow-tests
         ; static-field-tests
         ; static-method-invocation-tests
@@ -67,22 +68,36 @@ strategies
       , "1 <= 2"
       , Lit(Bool(True()))
       )
+    ; run-java-fail-expr(|"Uninitialized variable"
+      , "x"
+      )
 
 strategies
 
   primitive-tests = id      
-    ; run-java-test-stms(|"Less than or equal operator"
-      , "System.out.println(\"Hey\"); 0;"
+    ; run-java-test-stms(|"Primitive: System.out.println"
+      , "System.out.println(\"Iets anders\"); 0;"
       , Lit(Deci("0"))
       )
-
+    ; run-java-test-stms(|"Primitive: System.out.println"
+      , "String s = \"hoi\"; System.out.println(s); 3;"
+      , Lit(Deci("3"))
+      )
 
 strategies
 
   assignment-tests = id
-    ; run-java-test-stms(|"Simple assignment"
+    ; run-java-test-stms(|"Simple assignment (int)"
       , "int x = 2; x;"
       , Lit(Deci("2"))
+      )
+    ; run-java-test-stms(|"Simple assignment (String)"
+      , "String s = \"ja\"; s;"
+      , Lit(String([Chars("ja")]))
+      )
+    ; run-java-test-stms(|"Simple assignment (boolean)"
+      , "boolean b = true; b;"
+      , Lit(Bool(True))
       )
     ; run-java-test-stms(|"Simple assignment of expression"
       , "int x = 2+1; x;"
@@ -107,6 +122,25 @@ strategies
     ; run-java-test-stms(|"Simple assignment as expression"
       , "int x = 3; x = x + (x = 2); x;"
       , Lit(Deci("5"))
+      )
+
+strategies
+
+  block-scope-tests = id
+    ; run-java-test-stms(|"Simple block"
+      , "int x = 2; { x = 3; } x;"
+      , Lit(Deci("3"))
+      )
+    ; run-java-test-stms(|"Simple block with local declaration"
+      , "int x = 2; { int x; x = 3; } x;"
+      , Lit(Deci("2"))
+      )
+    ; run-java-test-stms(|"Simple block with local declaration"
+      , "int x = 2; { int x = 3; } x;"
+      , Lit(Deci("2"))
+      )
+    ; run-java-fail-stms(|"Simple block with local declaration"
+      , "int x; { int x = 3; } x;"
       )
 
 strategies
@@ -362,10 +396,24 @@ strategies
     )
 
   /**
+   * Source: expression
+   */
+  run-java-fail-expr(|msg, src) =
+    run-java-fail-stms(|msg 
+    , <concat-strings> [src, ";"]
+    )
+
+  /**
    * Source: list of statements.
    */
   run-java-test-stms(|msg, src, result) =
     run-java-test-classbodydecs(|msg, "", src, result)
+
+  /**
+   * Source: list of statements.
+   */
+  run-java-fail-stms(|msg, src) =
+    run-java-fail-classbodydecs(|msg, "", src)
 
   /**
    * Source: list of class body declarations
@@ -383,6 +431,20 @@ strategies
     )
 
   /**
+   * Source: list of class body declarations
+   */
+  run-java-fail-classbodydecs(|msg, src, srcmain) =
+    run-java-fail(|msg
+    , <concat-strings> [
+        "class Foo { "
+      , src
+      , "public static void main(String[] ps) {"
+      , srcmain
+      , "}}"
+      ]
+    )
+
+  /**
    * Source: compilation unit
    */
   run-java-test(|msg, src, result) =
@@ -395,4 +457,18 @@ strategies
       ; rm-annotations
     , <print-to> [src]; ![<id>]
     , !result
+    )
+
+  /**
+   * Source: compilation unit
+   */
+  run-java-fail(|msg, src) =
+    apply-and-fail(!msg
+    , run-java
+      ; try(?Block(<id>))
+      ; if is-list then last end
+      ; try(?ExprStm(<id>))
+      ; try(\ Return(None()) -> Void() \)
+      ; rm-annotations
+    , <print-to> [src]; ![<id>]
     )

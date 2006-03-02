@@ -11,7 +11,7 @@ strategies
    * Stub
    */
   eval-stat =
-       Block(map(eval-stat))
+       Block( {| EvalVar : map(eval-stat) |} )
     <+ ExprStm(eval-exp)
     <+ LocalVarDecStm(eval-local-var-dec)
 
@@ -25,5 +25,6 @@ strategies
 
   eval-var-dec =
     ?VarDec(Id(var), value)
+    ; <eval-exp>value => v
     ; rules ( EvalVar+var :- ExprName(Id(var)) )
-    ; rules ( EvalVar.var :  ExprName(Id(var)) -> <eval-exp>value )
+    ; rules ( EvalVar.var :  ExprName(Id(var)) -> v )
