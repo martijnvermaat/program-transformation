@@ -24,9 +24,17 @@ strategies
 strategies
 
   constant-expression-tests = id
-    ; run-java-test-expr(|"Literal value"
-      , "1"
-      , Lit(Deci("1"))
+    ; run-java-test-expr(|"Primitive integer value"
+      , "74"
+      , Lit(Deci("74"))
+      )
+    ; run-java-test-expr(|"Primitive boolean true value"
+      , "true"
+      , Lit(Bool(True))
+      )
+    ; run-java-test-expr(|"Primitive boolean false value"
+      , "false"
+      , Lit(Bool(False))
       )
     ; run-java-test-expr(|"Addition of two integers"
       , "1 + 2"
@@ -44,6 +52,54 @@ strategies
       , "2 * 3 + 4"
       , Lit(Deci("10"))
       )
+    ; run-java-test-expr(|"Multiplication and addition"
+      , "4 + 2 * 3"
+      , Lit(Deci("10"))
+      )
+    ; run-java-test-expr(|"Addition and multiplication"
+      , "2 * (3 + 4)"
+      , Lit(Deci("14"))
+      )
+    ; run-java-test-expr(|"Multiplication and addition"
+      , "(4 + 2) * 3"
+      , Lit(Deci("18"))
+      )
+    ; run-java-test-expr(|"And operator"
+      , "true & true"
+      , Lit(Bool(True))
+      )
+    ; run-java-test-expr(|"And operator"
+      , "true & false"
+      , Lit(Bool(False))
+      )
+    ; run-java-test-expr(|"And operator"
+      , "false & true"
+      , Lit(Bool(False))
+      )
+    ; run-java-test-expr(|"And operator"
+      , "false & false"
+      , Lit(Bool(False))
+      )
+    ; run-java-test-expr(|"Or operator"
+      , "true | true"
+      , Lit(Bool(True))
+      )
+    ; run-java-test-expr(|"Or operator"
+      , "true | false"
+      , Lit(Bool(True))
+      )
+    ; run-java-test-expr(|"Or operator"
+      , "false | true"
+      , Lit(Bool(True))
+      )
+    ; run-java-test-expr(|"Or operator"
+      , "false | false"
+      , Lit(Bool(False))
+      )
+    ; run-java-test-expr(|"Nested or/and operators"
+      , "(false | 2 > 1) & (true & 6 < 9)"
+      , Lit(Bool(True))
+      )
     ; run-java-test-expr(|"Conditional expression"
       , "true ? 1 : 2"
       , Lit(Deci("1"))
@@ -52,21 +108,85 @@ strategies
       , "false ? 1 : 2"
       , Lit(Deci("2"))
       )
+    ; run-java-test-expr(|"Conditional expression with addition"
+      , "false ? (1 + 7) : (2 + 25)"
+      , Lit(Deci("27"))
+      )
+    ; run-java-test-expr(|"Complex conditional expression"
+      , "((83 + 11) < 128) ? (2 * 7) : (2 + 25)"
+      , Lit(Deci("14"))
+      )
+    ; run-java-test-expr(|"Complex conditional expression"
+      , "((83 + 11) > 128) ? (2 * 7) : (2 + 25)"
+      , Lit(Deci("27"))
+      )
     ; run-java-test-expr(|"Less than operator"
       , "1 < 2"
       , Lit(Bool(True()))
+      )
+    ; run-java-test-expr(|"Less than operator"
+      , "2 < 1"
+      , Lit(Bool(False))
+      )
+    ; run-java-test-expr(|"Less than operator"
+      , "11 < 22"
+      , Lit(Bool(True()))
+      )
+    ; run-java-test-expr(|"Less than operator"
+      , "13 < 8"
+      , Lit(Bool(False))
+      )
+    ; run-java-test-expr(|"Less than operator"
+      , "8 < 13"
+      , Lit(Bool(True))
       )
     ; run-java-test-expr(|"Greater than operator"
       , "1 > 2"
       , Lit(Bool(False()))
       )
+    ; run-java-test-expr(|"Greater than operator"
+      , "21 > 7"
+      , Lit(Bool(True))
+      )
+    ; run-java-test-expr(|"Greater than operator"
+      , "7 > 21"
+      , Lit(Bool(False))
+      )
     ; run-java-test-expr(|"Greater than or euqal operator"
       , "1 >= 2"
       , Lit(Bool(False()))
       )
+    ; run-java-test-expr(|"Greater than or euqal operator"
+      , "2 >= 2"
+      , Lit(Bool(True))
+      )
+    ; run-java-test-expr(|"Greater than or euqal operator"
+      , "(2 + 3) >= 5"
+      , Lit(Bool(True))
+      )
+    ; run-java-test-expr(|"Greater than or euqal operator"
+      , "5 >= (2 + 3)"
+      , Lit(Bool(True))
+      )
     ; run-java-test-expr(|"Less than or equal operator"
       , "1 <= 2"
       , Lit(Bool(True()))
+      )
+    ; run-java-test-expr(|"Less than or equal operator"
+      , "2 <= 1"
+      , Lit(Bool(False))
+      )
+    ; run-java-test-expr(|"Less than or equal operator"
+      , "13 <= 8"
+      , Lit(Bool(False))
+      )
+    ; run-java-test-expr(|"Less than or equal operator"
+      , "8 <= 13"
+      , Lit(Bool(True))
+      )
+    ; run-java-test-expr(|"Less than or equal operator"
+      , "2 <= 2"
+      , Lit(Bool(True))
       )
     ; run-java-fail-expr(|"Uninitialized variable"
       , "x"
@@ -87,9 +207,21 @@ strategies
 strategies
 
   assignment-tests = id
+    ; run-java-test-stms(|"Simple declaration"
+      , "int x; x = 2;"
+      , Lit(Deci("2"))
+      )
+    ; run-java-test-stms(|"Simple declaration"
+      , "int x, y; x = y = 2;"
+      , Lit(Deci("2"))
+      )
     ; run-java-test-stms(|"Simple assignment (int)"
       , "int x = 2; x;"
       , Lit(Deci("2"))
+      )
+    ; run-java-test-stms(|"Simple assignment (int)"
+      , "int x = 2, y = 3; x + y;"
+      , Lit(Deci("5"))
       )
     ; run-java-test-stms(|"Simple assignment (String)"
       , "String s = \"ja\"; s;"
@@ -146,36 +278,73 @@ strategies
 strategies
 
   control-flow-tests = id
-    ; run-java-test-stms(|"Simple if statement."
+    ; run-java-test-stms(|"Simple empty statement"
+      , "8; ;"
+      , Empty()
+      )
+    ; run-java-test-stms(|"Simple empty statement"
+      , "; 8;"
+      , Lit(Deci("8"))
+      )
+    ; run-java-test-stms(|"Simple if statement"
       , "int x = 1; if(true) x = 2; x;"
       , Lit(Deci("2"))
       )
-    ; run-java-test-stms(|"Simple if statement."
+    ; run-java-test-stms(|"Simple if statement"
       , "int x = 1; if(false) x = 2; x;"
       , Lit(Deci("1"))
       )
-    ; run-java-test-stms(|"Simple if statement."
+    ; run-java-test-stms(|"Simple if statement"
       , "int x = 1; if(true) x = 2; else x = 3; x;"
       , Lit(Deci("2"))
       )
-    ; run-java-test-stms(|"Simple if statement."
+    ; run-java-test-stms(|"Simple if statement"
       , "int x = 1; if(false) x = 2; else x = 3; x;"
       , Lit(Deci("3"))
       )
-    ; run-java-test-stms(|"Simple while statement."
+    ; run-java-test-stms(|"Simple if statement with local variables"
+      , "int x = 1; if(false) { int x = 2; x = 8; } else { int x = 3; x = 9; } x;"
+      , Lit(Deci("1"))
+      )
+    ; run-java-test-stms(|"Complex if statement"
+      , "int x = 1; if((x = 2) >= 2) x = 3; x;"
+      , Lit(Deci("3"))
+      )
+    ; run-java-test-stms(|"Complex if statement"
+      , "int x = 1; if((x = 2) > 2) x = 3; x;"
+      , Lit(Deci("2"))
+      )
+    ; run-java-test-stms(|"Simple while statement"
       , "int x = 0; while(x < 7) { x = x + 1; } x;"
       , Lit(Deci("7"))
       )
-      
+    ; run-java-test-stms(|"Simple while statement"
+      , "int x = 0; while(x > 7) { x = x + 1; } x;"
+      , Lit(Deci("0"))
+      )
+    ; run-java-test-stms(|"Complex while statement"
+      , "int x = 0; while((x = x + 1) < 7) { } x;"
+      , Lit(Deci("7"))
+      )
+    ; run-java-test-stms(|"Complex while statement"
+      , "int x = 0, y = 6; while(x < y) { x = x + 2; y = y + 1; } x + y;"
+      , Lit(Deci("24"))
+      )
+
 strategies
 
   static-field-tests = id
-    ; run-java-test-classbodydecs(|"Simple static field"
+    ; run-java-test-classbodydecs(|"Simple static int field"
       , "private static int x;"
       , "x = 5; x = x + 2; x;"
       , Lit(Deci("7"))
       )
-    ; run-java-test-classbodydecs(|"Simple static field"
+    ; run-java-test-classbodydecs(|"Simple static int field"
+      , "private static int x;"
+      , "x = 5; { int x = x + 2; int y = x; } x + y;"
+      , Lit(Deci("12"))
+      )
+    ; run-java-test-classbodydecs(|"Simple static method"
       , "private static int x;
          public static void foo() {
            x = 13;
@@ -184,7 +353,7 @@ strategies
       , "foo(); x;"
       , Lit(Deci("13"))
       )
-    ; run-java-test(|"Simple static field"
+    ; run-java-test(|"Simple static methods"
       , "class Foo {
            private static int x;
            

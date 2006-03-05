@@ -11,15 +11,38 @@ strategies
    * Evaluate statement.
    */
   eval-stat =
-       Block( {| EvalVar : map(eval-stat) |} )
-    <+ ExprStm(eval-exp)
-    <+ LocalVarDecStm(eval-local-var-dec)
+       eval-empty-stm
+    <+ eval-block-stm
+    <+ eval-expr-stm
+    <+ eval-local-var-dec-stm
+    <+ eval-if-stm
+    <+ eval-if-then-else-stm
+    <+ eval-while-stm
+    <+ eval-goto-stm
+
+  /**
+   * Do nothing with empty statement.
+   */
+  eval-empty-stm =
+    Empty
+
+  /**
+   * Evaluate statements in block.
+   */
+  eval-block-stm =
+    Block( {| EvalVar : map(eval-stat) |} )
+
+  /**
+   * Evaluate expression.
+   */
+  eval-expr-stm =
+    ExprStm(eval-exp)
 
   /**
    * Evaluate local variable declaration.
    */
-  eval-local-var-dec =
-    ?LocalVarDec(_, _, <id>)
+  eval-local-var-dec-stm =
+    ?LocalVarDecStm(LocalVarDec(_, _, <id>))
     ; map(eval-var-dec)
 
   /**
@@ -36,3 +59,44 @@ strategies
     VarDec(Id(?var), eval-exp => value)
     ; rules ( EvalVar+var :- ExprName(Id(var)) )
     ; rules ( EvalVar.var :  ExprName(Id(var)) -> value )
+
+  /**
+   * Evaluate if statement.
+   */
+  eval-if-stm =
+    If(eval-exp, id)
+    ; RewriteIf
+    ; eval-stat
+
+  /**
+   * Evaluate if-then-else statement.
+   */
+  eval-if-then-else-stm =
+    If(eval-exp, id, id)
+    ; RewriteIfThenElse
+    ; eval-stat
+
+  /**
+   * Evaluate while statement. Rewrite the while statement to an if statement
+   * with a Goto statement appended to the body. The Goto statement will be
+   * rewritten to a new such if statement with a dynamic rule.
+   */
+  eval-while-stm =
+    ?While(e, b)
+    ; where( new => label )
+    ; where( !Block([b, Goto(label)]) => b' )
+    ; rules( EvalGoto : Goto(label) -> <eval-stat>If(e, b') )
+    ; <eval-stat>Goto(label)
+
+  /**
+   * Evaluate goto statement.
+   */
+  eval-goto-stm =
+    EvalGoto
+
+/**
+ * Goto constructor is used in evaluation of while statements.
+ */
+signature
+  constructors
+    Goto : String -> Stat
