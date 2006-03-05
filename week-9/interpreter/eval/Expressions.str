@@ -72,8 +72,8 @@ strategies
            ; desugar
            ; eval-stat
       |}
-    ; GetReturnValue
-      <+ !Void()
+    ; (GetReturnValue
+       <+ !Void())
 
   /**
    * Define EvalVar rules for parameter.
