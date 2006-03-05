@@ -8,23 +8,31 @@ imports
 strategies
 
   /**
-   * Stub
+   * Evaluate statement.
    */
   eval-stat =
        Block( {| EvalVar : map(eval-stat) |} )
     <+ ExprStm(eval-exp)
     <+ LocalVarDecStm(eval-local-var-dec)
 
+  /**
+   * Evaluate local variable declaration.
+   */
   eval-local-var-dec =
     ?LocalVarDec(_, _, <id>)
     ; map(eval-var-dec)
 
+  /**
+   * Simple declaration.
+   */
   eval-var-dec =
-    ?VarDec(Id(var))
+    VarDec(Id(?var))
     ; rules ( EvalVar+var :- ExprName(Id(var)) )
 
+  /**
+   * Declaration with assignment.
+   */
   eval-var-dec =
-    ?VarDec(Id(var), value)
-    ; <eval-exp>value => v
+    VarDec(Id(?var), eval-exp => value)
     ; rules ( EvalVar+var :- ExprName(Id(var)) )
-    ; rules ( EvalVar.var :  ExprName(Id(var)) -> v )
+    ; rules ( EvalVar.var :  ExprName(Id(var)) -> value )

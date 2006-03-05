@@ -1,3 +1,34 @@
 module eval/Primitive
 imports
   libdryad
+
+strategies
+
+  /**
+   * Primitives of our Little Java.
+   */
+  eval-primitives(s) =
+    eval-println(s)
+
+  /**
+   * System.out.println() primitive.
+   */
+  eval-println(s) =
+    ?Invoke(
+          Method(
+            MethodName(
+              Field(
+                TypeName(
+                  PackageName([Id("java"), Id("lang")])
+                , Id("System")
+                )
+              , Id("out")
+              )
+            , Id("println")
+            )
+          )
+        , [ <bottomup-exp(s)> ]
+    )
+    ; ?Lit(String([Chars(string)]))
+    ; <fprintnl> (stdout(), [string])
+    ; <fflush> stdout()
