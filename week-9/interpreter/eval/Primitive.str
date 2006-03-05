@@ -17,18 +17,14 @@ strategies
     ?Invoke(
           Method(
             MethodName(
-              Field(
-                TypeName(
-                  PackageName([Id("java"), Id("lang")])
-                , Id("System")
-                )
-              , Id("out")
-              )
+              Field(Id("out"))
             , Id("println")
             )
           )
         , [ <bottomup-exp(s)> ]
-    )
+    ){_,
+      DeclaringClass(ClassType(TypeName(PackageName([Id("java"),Id("io")]),Id("PrintStream")),None)),
+      _}
     ; ?Lit(String([Chars(string)]))
     ; <fprintnl> (stdout(), [string])
     ; <fflush> stdout()

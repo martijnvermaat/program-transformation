@@ -15,10 +15,10 @@ strategies
     <+ eval-block-stm
     <+ eval-expr-stm
     <+ eval-local-var-dec-stm
-    <+ eval-if-stm
     <+ eval-if-then-else-stm
     <+ eval-while-stm
     <+ eval-goto-stm
+    <+ eval-return-stm
 
   /**
    * Do nothing with empty statement.
@@ -61,14 +61,6 @@ strategies
     ; rules ( EvalVar.var :  ExprName(Id(var)) -> value )
 
   /**
-   * Evaluate if statement.
-   */
-  eval-if-stm =
-    If(eval-exp, id)
-    ; RewriteIf
-    ; eval-stat
-
-  /**
    * Evaluate if-then-else statement.
    */
   eval-if-then-else-stm =
@@ -85,7 +77,7 @@ strategies
     ?While(e, b)
     ; where( new => label )
     ; where( !Block([b, Goto(label)]) => b' )
-    ; rules( EvalGoto : Goto(label) -> <eval-stat>If(e, b') )
+    ; rules( EvalGoto : Goto(label) -> <eval-stat>If(e, b', Empty) )
     ; <eval-stat>Goto(label)
 
   /**
@@ -93,6 +85,14 @@ strategies
    */
   eval-goto-stm =
     EvalGoto
+
+  /**
+   * Return statement defines a dynamic rule.
+   */
+  eval-return-stm =
+    ?Return(Some(<eval-exp => value>))
+    ; rules( GetReturnValue :- _ )
+    ; rules( GetReturnValue : _ -> value )
 
 /**
  * Goto constructor is used in evaluation of while statements.

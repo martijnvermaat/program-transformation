@@ -1,0 +1,17 @@
+module eval/Sugar
+imports
+  eval/Rules
+  libdryad
+
+strategies
+
+  /**
+   * Rewrite syntactic sugar to basic constructs.
+   */
+  desugar =
+    topdown(
+      try(
+           RewriteIf
+        <+ RewriteQualifiedField
+      )
+    )

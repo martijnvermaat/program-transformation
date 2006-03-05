@@ -4,6 +4,7 @@
 module run-java
 imports
   libdryad
+  eval/Sugar
   eval/Statements
 
 strategies
@@ -64,6 +65,7 @@ strategies
   bootstrap-eval-static-method-invocation =
     get-reference-ast
     ; ?MethodDec(_, <id>)
+    ; log-timed(desugar   | "desugar"  , 0)
     ; log-timed(eval-stat | "eval-stat", 0)
 
 overlays

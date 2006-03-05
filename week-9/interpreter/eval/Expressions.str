@@ -1,5 +1,6 @@
 module eval/Expressions
 imports
+  eval/Sugar
   eval/Primitive
 
 strategies
@@ -10,6 +11,7 @@ strategies
   eval-exp =
     bottomup-exp(
          EvalVar
+      <+ EvalStaticField
       <+ EvalBinOp
       <+ EvalCond
       <+ debug(!"-- Cannot evaluate expression: ")
@@ -22,9 +24,9 @@ strategies
   bottomup-exp(s) =
        eval-atoms
     <+ eval-primitives(s)
-    <+ Assign(ExprName(Id(id)), bottomup-exp(s))
-       ; ?Assign(ExprName(Id(var)), <id => value>)
-       ; rules( EvalVar.var : ExprName(Id(var)) -> value )
+    <+ eval-var-assignment(s)
+    <+ eval-static-field-assignment(s)
+    <+ eval-static-invoke(s)
     <+ all(bottomup-exp(s))
        ; s
 
@@ -34,6 +36,52 @@ strategies
   eval-atoms =
        ?Lit(_)
     <+ ?Id(_)
+    <+ ?TypeName(_)
+    <+ ?TypeName(_, _)
+
+  /**
+   * Evaluate assignment to local variable.
+   */
+  eval-var-assignment(s) =
+    Assign(ExprName(Id(id)), bottomup-exp(s))     /* todo: refactor this */
+    ; ?Assign(ExprName(Id(var)), <id => value>)
+    ; rules( EvalVar.var : ExprName(Id(var)) -> value )
+
+  /**
+   * Evaluate assignment to static field.
+   */
+  eval-static-field-assignment(s) =
+    Assign(Field(Id(id)), bottomup-exp(s))    /* todo: use dryad library */
+    ; ?Assign(
+        Field(Id(var)){Type(_), DeclaringClass(declaring)},
+        <id => value>
+      )
+    ; rules( EvalStaticField : Field(Id(var)){_, DeclaringClass(declaring)} -> value )
+
+  /**
+   * Evaluate static invoke.
+   */
+  eval-static-invoke(s) =
+    ?Invoke(_, parameters)
+    ; compile-time-declaration-attr
+    ; lookup-method
+    ; get-reference-ast
+    ; ?MethodDec(MethodDecHead(_, _, _, _, formal-params, _), <id>)
+    ; {| EvalVar :
+           where(<zip(define-parameter)>(formal-params, parameters))
+           ; desugar
+           ; eval-stat
+      |}
+    ; GetReturnValue
+      <+ !Void()
+
+  /**
+   * Define EvalVar rules for parameter.
+   */
+  define-parameter =
+    ?(Param(_, _, Id(param)), <eval-exp => value>)
+    ; rules ( EvalVar+param :- ExprName(Id(param)) )
+    ; rules ( EvalVar.param :  ExprName(Id(param)) -> value )
 
 signature
   constructors

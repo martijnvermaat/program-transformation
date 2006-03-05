@@ -339,10 +339,33 @@ strategies
       , "x = 5; x = x + 2; x;"
       , Lit(Deci("7"))
       )
+    ; run-java-test(|"Simple static int field with qualifier"
+      , "class Foo {
+           private static int x;
+           public static void main(String[] ps) {
+             Foo.x = 3;
+             Foo.x = Foo.x + 9;
+             Foo.x;
+           }
+         }
+         "
+      , Lit(Deci("12"))
+      )
     ; run-java-test-classbodydecs(|"Simple static int field"
       , "private static int x;"
+      , "int y; x = 8; { int x = 9; y = x; } y;"
+      , Lit(Deci("9"))
+      )
+    /*
+      The following is something to look out for, the third occurence of the
+      name 'x' in the list of statements refers to a local variable 'x' that
+      has yet to be initialized and not to the field of the same name. Hence
+      the lookup should fail.
+      Checked that this is not a bug in dryad.
+    */
+    ; run-java-fail-classbodydecs(|"Simple static int field"
+      , "private static int x;"
       , "x = 5; { int x = x + 2; int y = x; } x + y;"
-      , Lit(Deci("12"))
       )
     ; run-java-test-classbodydecs(|"Simple static method"
       , "private static int x;
@@ -369,6 +392,23 @@ strategies
          "
       , Lit(Deci("14"))
       )
+    ; run-java-test(|"Simple static methods"
+      , "class Foo {
+           private static int x;
+           
+           public static void foo() {
+             Foo.x = 14;
+             x = x + 2;
+           }      
+          
+           public static void main(String[] ps) {
+             Foo.foo();
+             x + Foo.x;
+           }
+         }
+         "
+      , Lit(Deci("32"))
+      )
 
 strategies
 
@@ -384,16 +424,21 @@ strategies
       , Lit(Deci("2"))
       )
     ; run-java-test-classbodydecs(|"Simple static method with argument"
-      , "public static int foo(int x) { return 3 + x; }"
+      , "public static int foo(int x) { int y = 3 + x; return 2 + y; }"
       , "foo(5);"
-      , Lit(Deci("8"))
+      , Lit(Deci("10"))
       )
     ; run-java-test-classbodydecs(|"Simple static method with argument"
       , "public static int foo(int x) { return 3 + x; }"
       , "foo(5);"
       , Lit(Deci("8"))
       )
-      
+    ; run-java-test-classbodydecs(|"Simple static method with expression argument"
+      , "public static int foo(int x) { return 3 + x; }"
+      , "foo(2 + 3);"
+      , Lit(Deci("8"))
+      )
+
 strategies
 
   constructor-invocation-tests = id

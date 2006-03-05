@@ -88,13 +88,6 @@ rules
 rules
 
   /**
-   * If statement is syntactic sugar for if-then-else.
-   */
-
-  RewriteIf :
-        If(e, b) -> If(e, b, Empty)
-
-  /**
    * Evaluate if-then-else statement.
    */
 
@@ -103,3 +96,22 @@ rules
 
   RewriteIfThenElse :
         If(Lit(Bool(False)), b1, b2) -> b2
+
+/**
+ * Syntactic sugar
+ */
+rules
+
+  /**
+   * If statement is syntactic sugar for if-then-else.
+   */
+
+  RewriteIf :
+        If(e, b) -> If(e, b, Empty)
+
+  /**
+   * Simplify qualified fields, we use dryad annotations.
+   */
+
+  RewriteQualifiedField :
+        Field(_, f){type, declaring} -> Field(f){type, declaring}
