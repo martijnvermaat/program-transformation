@@ -188,18 +188,18 @@ strategies
       , "2 <= 2"
       , Lit(Bool(True))
       )
-    ; run-java-fail-expr(|"Uninitialized variable"
+    ; run-java-fail-expr(|"Uninitialized variable*"
       , "x"
       )
 
 strategies
 
   primitive-tests = id      
-    ; run-java-test-stms(|"Primitive: System.out.println"
+    ; run-java-test-stms(|"Primitive: System.out.println (Iets anders)"
       , "System.out.println(\"Iets anders\"); 0;"
       , Lit(Deci("0"))
       )
-    ; run-java-test-stms(|"Primitive: System.out.println"
+    ; run-java-test-stms(|"Primitive: System.out.println (hoi)"
       , "String s = \"hoi\"; System.out.println(s); 3;"
       , Lit(Deci("3"))
       )
@@ -271,7 +271,7 @@ strategies
       , "int x = 2; { int x = 3; } x;"
       , Lit(Deci("2"))
       )
-    ; run-java-fail-stms(|"Simple block with local declaration"
+    ; run-java-fail-stms(|"Simple block with local declaration*"
       , "int x; { int x = 3; } x;"
       )
 
@@ -363,7 +363,7 @@ strategies
       the lookup should fail.
       Checked that this is not a bug in dryad.
     */
-    ; run-java-fail-classbodydecs(|"Simple static int field"
+    ; run-java-fail-classbodydecs(|"Simple static int field*"
       , "private static int x;"
       , "x = 5; { int x = x + 2; int y = x; } x + y;"
       )
