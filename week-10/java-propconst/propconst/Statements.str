@@ -1,0 +1,64 @@
+module propconst/Statements
+imports
+  libdryad
+  propconst/Expressions
+
+strategies
+
+  /**
+   * Propagate constants in statement.
+   */
+  propconst-stat =
+       propconst-empty-stm
+    <+ propconst-block-stm
+    <+ propconst-expr-stm
+    <+ propconst-local-var-dec-stm
+    <+ propconst-labeled-stm
+
+  /**
+   * Do nothing with empty statement.
+   */
+  propconst-empty-stm =
+    Empty
+
+  /**
+   * Statements in block.
+   */
+  propconst-block-stm =
+    Block( {| PropConst : map(propconst-stat) |} )
+
+  /**
+   * Propagate constants in expression.
+   */
+  propconst-expr-stm =
+    ExprStm(propconst-exp)
+
+  /**
+   * Propagate constants in local variable declaration.
+   */
+  propconst-local-var-dec-stm =
+    ?LocalVarDecStm(LocalVarDec(_, _, <id>))
+    ; map(propconst-var-dec)
+
+  /**
+   * Simple declaration.
+   */
+  propconst-var-dec =
+    VarDec(Id(?var))
+    ; rules ( PropConst+var :- ExprName(Id(var)) )
+
+  /**
+   * Declaration with assignment.
+   */
+  propconst-var-dec =
+    VarDec(Id(?var), propconst-exp => e)
+    ; rules ( PropConst+var :- ExprName(Id(var)) )
+    ; if <is-value>e then
+        rules ( PropConst.var :  ExprName(Id(var)) -> e )
+      end
+
+  /**
+   * Labeled statement.
+   */
+  propconst-labeled-stm =
+    Labeled(id, propconst-stat)

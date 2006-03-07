@@ -1,0 +1,42 @@
+module propconst/Expressions
+imports
+  propconst/Rules
+
+strategies
+
+  /**
+   * Propagate constants in expressions bottomup.
+   */
+  propconst-exp =
+    bottomup-exp(
+      try(
+           PropConst
+        <+ EvalBinOp
+        <+ EvalCond
+      )
+    )
+
+  /**
+   * Bottomup traversal over expressions.
+   */
+  bottomup-exp(s) =
+       propconst-var-assignment(s)
+    <+ all(bottomup-exp(s))
+       ; s
+
+  /**
+   * Propagate constants in assignment to local variable.
+   */
+  propconst-var-assignment(s) =
+    Assign(ExprName(Id(?var)), bottomup-exp(s) => e)
+    ; if <is-value> e then
+        rules( PropConst.var : ExprName(Id(var)) -> e )
+      else
+        rules( PropConst.var :- ExprName(Id(var)) )
+      end
+
+  /**
+   * Succeed if current term is a fully evaluated expression.
+   */
+  is-value =
+    ?Lit(_)

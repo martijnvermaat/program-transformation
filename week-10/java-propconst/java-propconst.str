@@ -1,5 +1,5 @@
 module java-propconst
-imports libdryad
+imports libdryad propconst/Statements
 strategies
 
   main-java-propconst =
@@ -30,4 +30,8 @@ strategies
 strategies
 
   propconst-compilation-unit =
-    id // your transformation here
+    topdown(
+      try(
+        MethodDec(id, propconst-stat)
+      )
+    )

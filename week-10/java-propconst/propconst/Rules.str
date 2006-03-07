@@ -1,0 +1,82 @@
+module propconst/Rules
+imports
+  libdryad
+
+/**
+ * Expressions
+ */
+rules
+
+  /**
+   * Binary operations on integers.
+   */
+
+  EvalBinOp :
+        Plus(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Deci(r)) where (<addS>(i1, i2) => r)
+
+  EvalBinOp :
+        Minus(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Deci(r)) where (<subtS>(i1, i2) => r)
+
+  EvalBinOp :
+        Mul(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Deci(r)) where (<mulS>(i1, i2) => r)
+
+  EvalBinOp :
+        Lt(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Bool(r)) where (if <ltS>(i1, i2) then
+                                                                  !True
+                                                                else
+                                                                  !False
+                                                                end
+                                                                  => r)
+
+  EvalBinOp :
+        Gt(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Bool(r)) where (if <gtS>(i1, i2) then
+                                                                  !True
+                                                                else
+                                                                  !False
+                                                                end
+                                                                  => r)
+  EvalBinOp :
+        LtEq(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Bool(r)) where (if <leqS>(i1, i2) then
+                                                                    !True
+                                                                  else
+                                                                    !False
+                                                                  end
+                                                                    => r)
+
+  EvalBinOp :
+        GtEq(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Bool(r)) where (if <geqS>(i1, i2) then
+                                                                    !True
+                                                                  else
+                                                                    !False
+                                                                  end
+                                                                    => r)
+
+  /**
+   * Binary operations on booleans.
+   */
+
+  EvalBinOp :
+        And(Lit(Bool(b1)), Lit(Bool(b2))) -> Lit(Bool(r)) where (if <?True>b1; <?True>b2 then
+                                                                   !True
+                                                                 else
+                                                                   !False
+                                                                 end
+                                                                   => r)
+
+  EvalBinOp :
+        Or(Lit(Bool(b1)), Lit(Bool(b2))) -> Lit(Bool(r)) where (if <?False>b1; <?False>b2 then
+                                                                  !False
+                                                                else
+                                                                  !True
+                                                                end
+                                                                  => r)
+
+  /**
+   * Conditional expressions.
+   */
+
+  EvalCond :
+        Cond(Lit(Bool(True)), e1, e2) -> e1
+
+  EvalCond :
+        Cond(Lit(Bool(False)), e1, e2) -> e2
