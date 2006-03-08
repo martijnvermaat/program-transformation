@@ -9,6 +9,7 @@ strategies
       test-suite(!"WK10 assignment",
         observables-wrap(
           simple-tests
+        ; control-flow-tests
         )
       )
     )
@@ -30,6 +31,20 @@ strategies
      oncetd(?ExprName(Id("y")))
     | "Evaluation to simple constant value"
     , "class Foo { public void foo() { int x = 3; int y; result : x * y;} }"
+    )
+
+strategies
+
+  control-flow-tests = id
+  ; test-compilation-unit(|
+      "Simple if-then-else statement"
+    , "class Foo { boolean m; public void foo() { int x = 3, y = 2; if (m) { x = 1; } else { x = 1; y = x; } result : x; } }"
+    , ExprStm(Lit(Deci("1")))
+    )
+  ; test-compilation-unit(|
+      "Simple if-then-else statement"
+    , "class Foo { boolean m; public void foo() { int x = 3, y = 2; if (m) { x = 1; } else { x = 1; y = x; } result : y; } }"
+    , ExprStm(ExprName(Id("y")))
     )
 
 /**
