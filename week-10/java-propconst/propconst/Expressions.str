@@ -20,20 +20,42 @@ strategies
    * Bottomup traversal over expressions.
    */
   bottomup-exp(s) =
-       propconst-var-assignment(s)
+       propconst-var-assignment
+    <+ propconst-field-assignment
+    <+ propconst-method-invocation
     <+ all(bottomup-exp(s))
        ; s
 
   /**
    * Propagate constants in assignment to local variable.
    */
-  propconst-var-assignment(s) =
-    Assign(ExprName(Id(?var)), bottomup-exp(s) => e)
+  propconst-var-assignment =
+    Assign(ExprName(Id(?var)), propconst-exp => e)
     ; if <is-value> e then
         rules( PropConst.var : ExprName(Id(var)) -> e )
       else
         rules( PropConst.var :- ExprName(Id(var)) )
       end
+
+  /**
+   * Propagate constants in assignment to field.
+   * Only support fully qualified field names.
+   */
+  propconst-field-assignment =
+    Assign(Field(?q, ?field), propconst-exp => e)
+    ; if <is-value> e then
+        rules( PropConst+(q, field) : Field(q, field) -> e )
+      else
+        rules( PropConst+(q, field) :- Field(q, field) )
+      end
+
+  /**
+   * Throw away PropConst rules for all fields at method invocation.
+   */
+  propconst-method-invocation =
+    ?Invoke(_, _)
+    ; debug(!"hhhhh")
+
 
   /**
    * Succeed if current term is a fully evaluated expression.

@@ -13,7 +13,10 @@ strategies
     <+ propconst-block-stm
     <+ propconst-expr-stm
     <+ propconst-local-var-dec-stm
+    <+ propconst-if-then-else-stm
+    <+ propconst-while-stm
     <+ propconst-labeled-stm
+/*  <+ all(propconst-stat) */
 
   /**
    * Do nothing with empty statement.
@@ -62,3 +65,20 @@ strategies
    */
   propconst-labeled-stm =
     Labeled(id, propconst-stat)
+
+  /**
+   * If-then-else statement. Propagate constants in condition, then try to
+   * evaluate if-then-else, otherwise propagate constants in both branches.
+   */
+  propconst-if-then-else-stm =
+    If(propconst-exp, id, id)
+    ; (RewriteIfThenElse; propconst-stat
+       <+ If(id, propconst-stat, id) /PropConst\ If(id, id, propconst-stat))
+
+  /**
+   * While-statement. Propagate constants while intersection of PropConst
+   * reaches a fixpoint.
+   */
+  propconst-while-stm =
+    ?While(_, _)
+    ; (/PropConst\* While(propconst-exp, propconst-stat))

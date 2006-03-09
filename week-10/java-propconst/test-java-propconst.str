@@ -9,6 +9,7 @@ strategies
       test-suite(!"WK10 assignment",
         observables-wrap(
           simple-tests
+        ; field-tests
         ; control-flow-tests
         )
       )
@@ -35,6 +36,35 @@ strategies
 
 strategies
 
+  field-tests = id
+  ; test-compilation-unit(|
+      "Evaluation of field to simple constant value"
+    , "class Foo { int x; public void foo() { Foo.x = 3; result : Foo.x * Foo.x;} }"
+    , ExprStm(Lit(Deci("9")))
+    )
+  ; test-compilation-unit(
+     not(oncetd(?Field(TypeName(PackageName([]),Id("Foo")),Id("x"))))
+    | "Evaluation of field to simple constant value"
+    , "class Foo { int x; public void foo() { Foo.x = 3; int y; result : Foo.x * y;} }"
+    )
+  ; test-compilation-unit(
+     oncetd(?Field(TypeName(PackageName([]),Id("Foo")),Id("x")))
+    | "Evaluation of field to simple constant value"
+    , "class Foo { int x; public void foo() { int y; result : Foo.x * y;} }"
+    )
+  ; test-compilation-unit(|
+      "Evaluation of field after method call"
+    , "class Foo { int x; public void foo() { Foo.x = 2; result : Foo.x; } }"
+    , ExprStm(Lit(Deci("2")))
+    )
+  ; test-compilation-unit(|
+      "Evaluation of field after method call"
+    , "class Foo { int x; public void foo() { Foo.x = 2; System.out.println(\"hoi\"); result : Foo.x; } }"
+    , ExprStm(Field(TypeName(PackageName([]),Id("Foo")),Id("x")))
+    )
+
+strategies
+
   control-flow-tests = id
   ; test-compilation-unit(|
       "Simple if-then-else statement"
@@ -45,6 +75,21 @@ strategies
       "Simple if-then-else statement"
     , "class Foo { boolean m; public void foo() { int x = 3, y = 2; if (m) { x = 1; } else { x = 1; y = x; } result : y; } }"
     , ExprStm(ExprName(Id("y")))
+    )
+  ; test-compilation-unit(|
+      "Simple while statement"
+    , "class Foo { public void foo() { int x = 3; while(x > y) { x = 3; } result : x; } }"
+    , ExprStm(Lit(Deci("3")))
+    )
+  ; test-compilation-unit(|
+      "Simple while statement"
+    , "class Foo { public void foo() { while(x > y) { x = 3; } result : x; } }"
+    , ExprStm(Field(Id("x")))
+    )
+  ; test-compilation-unit(|
+      "Simple while statement"
+    , "class Foo { public void foo() { int x = 3; while(x > y) { x = 2; } result : x; } }"
+    , ExprStm(ExprName(Id("x")))
     )
 
 /**
@@ -64,6 +109,7 @@ strategies
     apply-test(!msg
     , propconst-compilation-unit
       ; get-test-result
+      ; strip-annos
     , <process-input> src   
     , !result
     )

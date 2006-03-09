@@ -80,3 +80,18 @@ rules
 
   EvalCond :
         Cond(Lit(Bool(False)), e1, e2) -> e2
+
+/**
+ * Control flow statements
+ */
+rules
+
+  /**
+   * Evaluate if-then-else statement.
+   */
+
+  RewriteIfThenElse :
+        If(Lit(Bool(True)), b1, b2) -> b1
+
+  RewriteIfThenElse :
+        If(Lit(Bool(False)), b1, b2) -> b2
