@@ -80,5 +80,6 @@ strategies
    * reaches a fixpoint.
    */
   propconst-while-stm =
-    ?While(_, _)
-    ; (/PropConst\* While(propconst-exp, propconst-stat))
+    While(propconst-exp, id)
+    ; (RewriteWhile
+       <+ (/PropConst\* While(propconst-exp, propconst-stat)))

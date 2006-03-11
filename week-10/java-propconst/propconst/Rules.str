@@ -95,3 +95,10 @@ rules
 
   RewriteIfThenElse :
         If(Lit(Bool(False)), b1, b2) -> b2
+
+  /**
+   * Evaluate while statement with constant false condition.
+   */
+
+  RewriteWhile :
+        While(Lit(Bool(False)), _) -> Block([])

@@ -116,6 +116,21 @@ strategies
     , "class Foo { public void foo() { int x = 3; while(x > y) { x = 2; } result : x; } }"
     , ExprStm(ExprName(Id("x")))
     )
+  ; test-compilation-unit(|
+      "Simple while statement with constant false condition"
+    , "class Foo { public void foo() { int x; result: while(false) { x = 2; } x; } }"
+    , Block([])
+    )
+  ; test-compilation-unit(|
+      "Simple while statement with constant false condition"
+    , "class Foo { public void foo() { int x = 3; boolean m = false; result: while(m) { x = 2; } x; } }"
+    , Block([])
+    )
+  ; test-compilation-unit(|
+      "Simple while statement with constant false condition"
+    , "class Foo { public void foo() { int x = 3; boolean m = false; while(m) { x = 2; } result : x; } }"
+    , ExprStm(Lit(Deci("3")))
+    )
 
 /**
  * Testing utils
