@@ -40,8 +40,7 @@ strategies
    * Propagate constants in local variable declaration.
    */
   propconst-local-var-dec-stm =
-    ?LocalVarDecStm(LocalVarDec(_, _, <id>))
-    ; map(propconst-var-dec)
+    LocalVarDecStm(LocalVarDec(id, id, map(propconst-var-dec)))
 
   /**
    * Simple declaration.
@@ -69,6 +68,7 @@ strategies
   /**
    * If-then-else statement. Propagate constants in condition, then try to
    * evaluate if-then-else, otherwise propagate constants in both branches.
+   * todo: simple if-then statement
    */
   propconst-if-then-else-stm =
     If(propconst-exp, id, id)

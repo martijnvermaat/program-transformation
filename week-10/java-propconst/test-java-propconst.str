@@ -20,18 +20,18 @@ strategies
   simple-tests = id
   ; test-compilation-unit(|
       "Evaluation to simple constant value"
-    , "class Foo { public void foo() { int x = 3; result : x * x;} }"
+    , "class Foo { public void foo() { int x = 3; result : x * x; } }"
     , ExprStm(Lit(Deci("9")))
     )
   ; test-compilation-unit(
      not(oncetd(?ExprName(Id("x"))))
     | "Evaluation to simple constant value"
-    , "class Foo { public void foo() { int x = 3; int y; result : x * y;} }"
+    , "class Foo { public void foo() { int x = 3; int y; result : x * y; } }"
     )
   ; test-compilation-unit(
      oncetd(?ExprName(Id("y")))
     | "Evaluation to simple constant value"
-    , "class Foo { public void foo() { int x = 3; int y; result : x * y;} }"
+    , "class Foo { public void foo() { int x = 3; int y; result : x * y; } }"
     )
 
 strategies
@@ -39,18 +39,23 @@ strategies
   field-tests = id
   ; test-compilation-unit(|
       "Evaluation of field to simple constant value"
-    , "class Foo { int x; public void foo() { Foo.x = 3; result : Foo.x * Foo.x;} }"
+    , "class Foo { int x; public void foo() { Foo.x = 3; result : Foo.x * Foo.x; } }"
     , ExprStm(Lit(Deci("9")))
+    )
+  ; test-compilation-unit(|
+      "Evaluation of field to simple constant value"
+    , "class Foo { int x; int m; public void foo() { Foo.x = 3; Foo.x = Foo.m; result : Foo.x; } }"
+    , ExprStm(Field(TypeName(PackageName([]),Id("Foo")),Id("x")))
     )
   ; test-compilation-unit(
      not(oncetd(?Field(TypeName(PackageName([]),Id("Foo")),Id("x"))))
     | "Evaluation of field to simple constant value"
-    , "class Foo { int x; public void foo() { Foo.x = 3; int y; result : Foo.x * y;} }"
+    , "class Foo { int x; public void foo() { Foo.x = 3; int y; result : Foo.x * y; } }"
     )
   ; test-compilation-unit(
      oncetd(?Field(TypeName(PackageName([]),Id("Foo")),Id("x")))
     | "Evaluation of field to simple constant value"
-    , "class Foo { int x; public void foo() { int y; result : Foo.x * y;} }"
+    , "class Foo { int x; public void foo() { int y; result : Foo.x * y; } }"
     )
   ; test-compilation-unit(|
       "Evaluation of field after method call"
@@ -62,19 +67,39 @@ strategies
     , "class Foo { int x; public void foo() { Foo.x = 2; System.out.println(\"hoi\"); result : Foo.x; } }"
     , ExprStm(Field(TypeName(PackageName([]),Id("Foo")),Id("x")))
     )
+  ; test-compilation-unit(|
+      "Evaluation of field after method call"
+    , "class Foo { int x; public void foo() { int y = 1; Foo.x = 2; System.out.println(\"hoi\"); result : y; } }"
+    , ExprStm(Lit(Deci("1")))
+    )
 
 strategies
 
   control-flow-tests = id
   ; test-compilation-unit(|
       "Simple if-then-else statement"
-    , "class Foo { boolean m; public void foo() { int x = 3, y = 2; if (m) { x = 1; } else { x = 1; y = x; } result : x; } }"
+    , "class Foo { boolean m; public void foo() { int x = 3, y = 2; if (Foo.m) { x = 1; } else { x = 1; y = x; } result : x; } }"
     , ExprStm(Lit(Deci("1")))
     )
   ; test-compilation-unit(|
       "Simple if-then-else statement"
-    , "class Foo { boolean m; public void foo() { int x = 3, y = 2; if (m) { x = 1; } else { x = 1; y = x; } result : y; } }"
+    , "class Foo { boolean m; public void foo() { Foo.m = true; int x = 3, y = 2; if (Foo.m) { x = 1; } else { x = 1; y = x; } result : x; } }"
+    , ExprStm(Lit(Deci("1")))
+    )
+  ; test-compilation-unit(
+     not(oncetd(?If(_, _, _)))
+    | "Simple if-then-else statement (evaluated)"
+    , "class Foo { boolean m; public void foo() { Foo.m = true; int x = 3, y = 2; result : if (Foo.m) { x = 1; } else { x = 1; y = x; } x; } }"
+    )
+  ; test-compilation-unit(|
+      "Simple if-then-else statement"
+    , "class Foo { boolean m; public void foo() { int x = 3, y = 2; if (Foo.m) { x = 1; } else { x = 1; y = x; } result : y; } }"
     , ExprStm(ExprName(Id("y")))
+    )
+  ; test-compilation-unit(|
+      "Simple if-then-else statement (evaluated)"
+    , "class Foo { boolean m; public void foo() { Foo.m = false; int x = 3, y = 2; if (Foo.m) { x = 1; } else { x = 1; y = x + 4; } result: y; } }"
+    , ExprStm(Lit(Deci("5")))
     )
   ; test-compilation-unit(|
       "Simple while statement"

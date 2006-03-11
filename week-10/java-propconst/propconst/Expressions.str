@@ -38,15 +38,17 @@ strategies
       end
 
   /**
-   * Propagate constants in assignment to field.
+   * Propagate constants in assignment to field. Field values are dependent on
+   * method invocations.
    * Only support fully qualified field names.
    */
   propconst-field-assignment =
-    Assign(Field(?q, ?field), propconst-exp => e)
+    Assign(?field@Field(_, _), propconst-exp => e)
     ; if <is-value> e then
-        rules( PropConst+(q, field) : Field(q, field) -> e )
+        rules( PropConst+field : field -> e
+               depends on [(field, "inv")] )
       else
-        rules( PropConst+(q, field) :- Field(q, field) )
+        rules( PropConst+field :- field )
       end
 
   /**
@@ -54,8 +56,7 @@ strategies
    */
   propconst-method-invocation =
     ?Invoke(_, _)
-    ; debug(!"hhhhh")
-
+    ; undefine-PropConst(|"inv")
 
   /**
    * Succeed if current term is a fully evaluated expression.
