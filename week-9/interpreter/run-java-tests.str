@@ -263,6 +263,11 @@ strategies
       , "int x = 2; { x = 3; } x;"
       , Lit(Deci("3"))
       )
+      /**
+       * These tests are bogus; Java doesn't know local shadowing of
+       * variables.
+       */
+/*
     ; run-java-test-stms(|"Simple block with local declaration"
       , "int x = 2; { int x; x = 3; } x;"
       , Lit(Deci("2"))
@@ -274,6 +279,7 @@ strategies
     ; run-java-fail-stms(|"Simple block with local declaration*"
       , "int x; { int x = 3; } x;"
       )
+*/
 
 strategies
 
@@ -302,10 +308,15 @@ strategies
       , "int x = 1; if(false) x = 2; else x = 3; x;"
       , Lit(Deci("3"))
       )
+      /**
+       * This test is bogus; Java doesn't know local shadowing of variables.
+       */
+/*
     ; run-java-test-stms(|"Simple if statement with local variables"
       , "int x = 1; if(false) { int x = 2; x = 8; } else { int x = 3; x = 9; } x;"
       , Lit(Deci("1"))
       )
+*/
     ; run-java-test-stms(|"Complex if statement"
       , "int x = 1; if((x = 2) >= 2) x = 3; x;"
       , Lit(Deci("3"))

@@ -28,6 +28,9 @@ strategies
 
   /**
    * Evaluate statements in block.
+   * Note: scoping of EvalVar rules here is not correct; Java doesn't know
+   * local shadowing of variables. Scoping should occur at method body level
+   * though...
    */
   eval-block-stm =
     Block( {| EvalVar : map(eval-stat) |} )
