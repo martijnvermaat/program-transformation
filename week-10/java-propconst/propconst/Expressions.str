@@ -55,7 +55,7 @@ strategies
    * Throw away PropConst rules for all fields at method invocation.
    */
   propconst-method-invocation =
-    ?Invoke(_, _)
+    Invoke(id, propconst-exp)
     ; undefine-PropConst(|"inv")
 
   /**

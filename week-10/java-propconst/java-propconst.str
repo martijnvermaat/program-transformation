@@ -32,6 +32,6 @@ strategies
   propconst-compilation-unit =
     topdown(
       try(
-        MethodDec(id, propconst-stat)
+        MethodDec(id, propconst-method-body)
       )
     )

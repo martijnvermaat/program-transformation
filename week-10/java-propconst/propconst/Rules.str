@@ -51,6 +51,14 @@ rules
                                                                   end
                                                                     => r)
 
+  EvalBinOp :
+        Eq(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Bool(r)) where (if <eq>(i1, i2) then
+                                                                  !True
+                                                                else
+                                                                  !False
+                                                                end
+                                                                  => r)
+
   /**
    * Binary operations on booleans.
    */

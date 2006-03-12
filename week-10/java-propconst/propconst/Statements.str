@@ -6,6 +6,13 @@ imports
 strategies
 
   /**
+   * Propagate constants in method body. Scope PropConst rules so constant
+   * values are not propagated outside this transformation.
+   */
+  propconst-method-body =
+    {| PropConst : propconst-stat |}
+
+  /**
    * Propagate constants in statement.
    */
   propconst-stat =
@@ -26,9 +33,12 @@ strategies
 
   /**
    * Statements in block.
+   * Don't scope PropConst rules on block level, because Java does not know
+   * shadowing. Also, field value propagation would have to be implemented
+   * with seperate rule names.
    */
   propconst-block-stm =
-    Block( {| PropConst : map(propconst-stat) |} )
+    Block( map(propconst-stat) )
 
   /**
    * Propagate constants in expression.
