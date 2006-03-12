@@ -1,0 +1,12 @@
+module dce/DCE
+imports
+  libdryad
+  dce/Rules
+
+strategies
+
+  /**
+   * Eliminate dead code in method body.
+   */
+  dce-method-body =
+    id

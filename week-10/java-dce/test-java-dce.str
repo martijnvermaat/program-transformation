@@ -1,0 +1,59 @@
+module test-java-dce
+imports
+  java-dce
+
+strategies
+
+  main-test-java-dce =
+    option-wrap(general-options,
+      test-suite(!"WK10 assignment",
+        observables-wrap(
+          simple-tests
+        )
+      )
+    )
+
+strategies
+
+  simple-tests = id
+  ; test-compilation-unit(|
+      "Evaluation to simple constant value"
+    , "class Foo { public void foo() { int x = 3; result : x * x; } }"
+    , ExprStm(Lit(Deci("9")))
+    )
+
+/**
+ * Testing utils
+ */
+strategies
+
+  test-compilation-unit(check |msg, src) =
+    apply-and-check(!msg
+    , dce-compilation-unit
+      ; get-test-result             
+    , <process-input> src   
+    , check
+    )
+    
+  test-compilation-unit(|msg, src, result) =
+    apply-test(!msg
+    , dce-compilation-unit
+      ; get-test-result
+      ; strip-annos
+    , <process-input> src   
+    , !result
+    )
+
+  get-test-result =
+    oncetd(?Labeled(Id("result"), stm))
+    ; !stm
+
+  process-input =
+    print-to
+    ; ![<id>]
+    ; parse-java
+    ; map(define-compilation-unit)
+    ; dryad-reclassify
+    ; map(dryad-type-checker) 
+    ; last
+    ; get-ast

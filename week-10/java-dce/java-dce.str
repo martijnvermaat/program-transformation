@@ -1,0 +1,37 @@
+module java-dce
+imports libdryad dce/DCE
+strategies
+
+  main-java-dce =
+    xtc-multi-io-wrap(
+      observables-wrap(dce-java)
+    )
+
+  dce-java =
+    process-input-sources
+    ; map(
+        get-ast
+        ; dce-compilation-unit
+        ; write-to
+        ; xtc-transform(!"pp-java",pass-verbose)
+      )
+
+  /**
+   * Loads Java source files in the Dryad repository.
+   *
+   * @type List(FILE) -> List(CompilationUnit Object)
+   */
+  process-input-sources =
+    parse-java
+    ; map(define-compilation-unit)
+    ; dryad-reclassify
+    ; map(dryad-type-checker)
+
+strategies
+
+  dce-compilation-unit =
+    topdown(
+      try(
+        MethodDec(id, dce-method-body)
+      )
+    )
