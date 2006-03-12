@@ -21,6 +21,11 @@ strategies
     , "class Foo { public void foo() { int x = 3; result : x * x; } }"
     , ExprStm(Lit(Deci("9")))
     )
+  ; test-full-compilation-unit(|
+      "Test dce"
+    , "class Foo { void foo() { int x = 0; int y = x * x; return x; } }"
+    , "class Foo { void foo() { int x = 0; return x; } }"
+    )
 
 /**
  * Testing utils
@@ -42,6 +47,13 @@ strategies
       ; strip-annos
     , <process-input> src   
     , !result
+    )
+
+  test-full-compilation-unit(|msg, src, result) =
+    apply-test(!msg
+    , dce-compilation-unit; strip-annos
+    , <process-input> src
+    , <process-input; strip-annos> result
     )
 
   get-test-result =
