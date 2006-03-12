@@ -9,4 +9,35 @@ strategies
    * Eliminate dead code in method body.
    */
   dce-method-body =
-    id
+    dce-stm
+
+  dce-stm =
+       propconst-empty-stm
+    <+ propconst-block-stm
+    <+ propconst-expr-stm
+    <+ propconst-local-var-dec-stm
+    <+ propconst-if-then-else-stm
+    <+ propconst-while-stm
+    <+ propconst-labeled-stm
+
+  dce-empty-stm =
+    Empty
+
+  dce-block-stm =
+    Block( reverse-map(dce-block-stm) )
+
+  dce-expr-stm =
+/* collect all topdown delen in expression met side effects,
+   ie all assignments, invocations */
+       expr-has-side-effects
+       ; ExprStm( declare-vars-needed )
+    <+ !Empty
+
+  declare-vars-needed =
+    alltd({var :
+      ?ExprName(Id(var))
+      ; rules(
+          VarNeeded.var : var
+          VarUsed.var   : var
+         )
+    })
