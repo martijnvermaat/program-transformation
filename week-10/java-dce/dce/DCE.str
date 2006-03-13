@@ -7,31 +7,44 @@ strategies
 
   /**
    * Eliminate dead code in method body.
+   * todo: scope rules
+   * todo: fields
+   * todo: declarations
    */
   dce-method-body =
     dce-stm
 
   dce-stm =
-       propconst-empty-stm
-    <+ propconst-block-stm
-    <+ propconst-expr-stm
-    <+ propconst-local-var-dec-stm
-    <+ propconst-if-then-else-stm
-    <+ propconst-while-stm
-    <+ propconst-labeled-stm
+       dce-empty-stm
+    <+ dce-block-stm
+    <+ dce-expr-stm
+/*
+    <+ dce-local-var-dec-stm
+    <+ dce-if-then-else-stm
+    <+ dce-while-stm
+    <+ dce-labeled-stm
+*/
 
   dce-empty-stm =
     Empty
 
   dce-block-stm =
-    Block( reverse-map(dce-block-stm) )
+    Block( reverse-map(dce-stm) )
 
   dce-expr-stm =
-/* collect all topdown delen in expression met side effects,
-   ie all assignments, invocations */
-       expr-has-side-effects
-       ; ExprStm( declare-vars-needed )
-    <+ !Empty
+    ?ExprStm( <id> )
+    ; (dce-assign-expr <+ dce-simple-expr)
+    ; !Block( <map(!ExprStm( <id> ) )> )
+
+  dce-assign-expr =
+    ?Assign(_, _)
+    ; if ElimAssign
+      then dce-simple-expr
+      else ![ Assign(id, declare-vars-needed) ]
+
+  dce-simple-expr =
+    ; collect(?Invoke(_, _))
+    ; reverse-map(declare-vars-needed)
 
   declare-vars-needed =
     alltd({var :
