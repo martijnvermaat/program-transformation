@@ -8,7 +8,10 @@ strategies
     option-wrap(general-options,
       test-suite(!"WK10 assignment",
         observables-wrap(
-            simple-tests
+            expression-tests
+          ; assignment-tests
+          ; declaration-tests
+          ; control-flow-tests
           ; complex-tests
         )
       )
@@ -16,16 +19,138 @@ strategies
 
 strategies
 
-  simple-tests = id
+  expression-tests = id
   ; test-compilation-unit(|
-      "Evaluation to simple constant value"
-    , "class Foo { public void foo() { int x = 3; result : x * x; } }"
-    , ExprStm(Lit(Deci("9")))
+      "Removable expression"
+    , "class Foo { public void foo() { result : 29 + 7 * 19; } }"
+    , Empty()
+    )
+  ; test-compilation-unit(
+      ?ExprStm(Invoke(_, _))
+    | "Removable part of expression"
+    , "class Foo { public void foo() { result : 29 + foo() * 19; } }"
+    )
+  ; test-compilation-unit(|
+      "Removable assignment"
+    , "class Foo { public void foo() { int x; result : x = 29 + 7 * 19; } }"
+    , Empty()
+    )
+  ; test-compilation-unit(
+      ?ExprStm(Invoke(_, _))
+    | "Removable part of expression"
+    , "class Foo { public void foo() { int x; result : x = 29 + foo() * 19; } }"
     )
   ; test-full-compilation-unit(|
-      "Test dce"
-    , "class Foo { void foo() { int x = 0; int y = x * x; return x; } }"
-    , "class Foo { void foo() { int x = 0; return x; } }"
+      "Multiple non-removable parts of expression"
+    , "class Foo { public void foo() { result : 29 + foo(bar()) * baz() - m(19); } }"
+    , "class Foo { public void foo() { result : { foo(bar()); baz(); m(19); } } }"
+    )
+  ; test-full-compilation-unit(|
+      "Multiple non-removable parts of expression"
+    , "class Foo { public void foo() { int x; result : x = 29 + foo(bar()) * baz() - m(19); } }"
+    , "class Foo { public void foo() { result : { foo(bar()); baz(); m(19); } } }"
+    )
+
+strategies
+
+  assignment-tests = id
+  ; test-compilation-unit(
+      oncetd(?Assign(_, _))
+    | "Simple assignment"
+    , "class Foo { public void foo() { int x; x = 19; m(x); } }"
+    )
+  ; test-compilation-unit(
+      not(oncetd(?Assign(_, _)))
+    | "Simple assignment"
+    , "class Foo { public void foo() { int x; x = 19; } }"
+    )
+  ; test-compilation-unit(
+      not(oncetd(?Assign(_, _))) ; oncetd(?Invoke(_, _))
+    | "Simple assignment"
+    , "class Foo { public void foo() { int x; x = m(); } }"
+    )
+  ; test-full-compilation-unit(|
+      "Simple assignments"
+    , "class Foo { public void foo() { int x; x = 19; x = 18; m(x); } }"
+    , "class Foo { public void foo() { int x; x = 18; m(x); } }"
+    )
+  ; test-full-compilation-unit(|
+      "Simple assignments"
+    , "class Foo { public void foo() { int x; x = 19; m(x); x = 18; } }"
+    , "class Foo { public void foo() { int x; x = 19; m(x); } }"
+    )
+
+strategies
+
+  declaration-tests = id
+  ; test-compilation-unit(
+      oncetd(?LocalVarDecStm(_))
+    | "Simple declaration"
+    , "class Foo { public void foo() { int x; x = 19; m(x); } }"
+    )
+  ; test-compilation-unit(
+      not(oncetd(?LocalVarDecStm(_)))
+    | "Simple declaration"
+    , "class Foo { public void foo() { int x; m(); } }"
+    )
+  ; test-full-compilation-unit(|
+      "Simple declaration"
+    , "class Foo { public void foo() { int x; int y = 2; x = y; m(x, y); } }"
+    , "class Foo { public void foo() { int x; int y = 2; x = y; m(x, y); } }"
+    )
+  ; test-full-compilation-unit(|
+      "Simple declaration"
+    , "class Foo { public void foo() { int x; int y = 2; x = y; m(y); } }"
+    , "class Foo { public void foo() { int y = 2; m(y); } }"
+    )
+  ; test-full-compilation-unit(|
+      "Simple declaration with assignment"
+    , "class Foo { public void foo() { int x = 2; m(x); } }"
+    , "class Foo { public void foo() { int x = 2; m(x); } }"
+    )
+  ; test-full-compilation-unit(|
+      "Simple declaration with assignment"
+    , "class Foo { public void foo() { int x = 2; m(); } }"
+    , "class Foo { public void foo() { m(); } }"
+    )
+  ; test-compilation-unit(
+      oncetd(?Invoke(_, _))
+    | "Simple declaration with assignment"
+    , "class Foo { public void foo() { int x = a(); } }"
+    )
+  ; test-full-compilation-unit(|
+      "Multiple declarations"
+    , "class Foo { public void foo() { int x, y, z, a, b, c; x = 2; m(y); c = n(a + 3); } }"
+    , "class Foo { public void foo() { int y, a; m(y); n(a + 3); } }"
+    )
+
+strategies
+
+  control-flow-tests = id
+  ; test-compilation-unit(
+      oncetd(?LocalVarDecStm(_))
+    | "Simple if"
+    , "class Foo { public void foo() { int x; if (m()) h(x); else 19; } }"
+    )
+  ; test-compilation-unit(
+      not(oncetd(?Assign(_,_)))
+    | "Simple if"
+    , "class Foo { public void foo() { int x; result : x = 1; if (m()) x = 2; else x = 3; m(x); } }"
+    )
+  ; test-compilation-unit(
+      oncetd(?Assign(_,_))
+    | "Simple if"
+    , "class Foo { public void foo() { int x; result : x = 1; if (m()) 2; else x = 3; m(x); } }"
+    )
+  ; test-full-compilation-unit(|
+      "Simple if with assignment"
+    , "class Foo { public void foo() { int x; if(x = 4) m(); else m(); x = 5; m(x); } }"
+    , "class Foo { public void foo() { int x; if(4) m(); else m(); x = 5; m(x); } }"
+    )
+  ; test-full-compilation-unit(|
+      "Simple while"
+    , "class Foo { public void foo() { int x; x = 2; while(x = 4) m(x); } }"
+    , "class Foo { public void foo() { int x; while(x = 4) m(x); } }"
     )
 
 strategies
@@ -74,6 +199,39 @@ strategies
         }
       "
     )
+  ; test-full-compilation-unit(|
+      "Test from slides"
+    , "class Hoi {
+            void foo() {
+                int x, y, a, d, g, h, c, b;
+                x = mai(b);
+                y = bar(h);
+                a = c + 23;
+                if (4 > x) {
+                    d = b + a;
+                    g = 4 + y;
+                } else {
+                    b = 2;
+                    a = y + 3;
+                    a = 4 + x;
+                }
+                System.out.println(a);
+            }
+        }
+      "
+    , "class Hoi {
+           void foo() {
+               int x, a, h, c, b;
+               x = mai(b);
+               bar(h);
+               a = c + 23;
+               if(!(4 > x))
+                   a = 4 + x;
+               java.lang.System.out.println(a);
+           }
+       }
+      "
+    )
 
 /**
  * Testing utils
@@ -83,17 +241,17 @@ strategies
   test-compilation-unit(check |msg, src) =
     apply-and-check(!msg
     , dce-compilation-unit
-      ; get-test-result             
-    , <process-input> src   
+      ; try(get-test-result)
+    , <process-input> src
     , check
     )
     
   test-compilation-unit(|msg, src, result) =
     apply-test(!msg
     , dce-compilation-unit
-      ; get-test-result
+      ; try(get-test-result)
       ; strip-annos
-    , <process-input> src   
+    , <process-input> src
     , !result
     )
 

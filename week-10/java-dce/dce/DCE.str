@@ -8,14 +8,11 @@ strategies
   /**
    * Eliminate dead code in method body.
    * Don't use dce-stm here, because that may result in an Empty statement.
-   * todo: scope rules
-   * todo: fields
-   * todo: control flow
    * todo: return stm
-   * todo: declarations
+   * todo: fields
    */
   dce-method-body =
-    dce-block-stm
+    {| VarNeeded, VarUsed : dce-block-stm |}
 
   dce-stm =
        dce-empty-stm
@@ -27,10 +24,8 @@ strategies
     <+ dce-if-then-else-stm
        ; repeat(ElimIf)
        ; try(dce-expr-stm)
-/*
     <+ dce-while-stm
     <+ dce-labeled-stm
-*/
 
   dce-empty-stm =
     ?Empty
@@ -47,6 +42,7 @@ strategies
     ; !Block( <map(!ExprStm( <id> ) )> )
 
   /* assumption: assignment is always toplevel expression */
+  /* return list of expressions */
   dce-assign-expr =
     ?Assign(ExprName(Id(var)), _)
     ; if ElimAssign
@@ -55,6 +51,7 @@ strategies
            ; rules( VarNeeded.var :- var )
       end
 
+  /* return list of expressions */
   dce-simple-expr =
     collect(?Invoke(_, _))
     ; reverse-map(declare-vars-needed)
@@ -82,31 +79,37 @@ strategies
 
   /**
    * Declaration with assignment.
-   * todo: rewrite to simple declaration if not needed
-   *       (or not: expression may be needed)
    */
   dce-var-dec =
     VarDec(Id(?var), declare-vars-needed)
-    ; rules( VarNeeded.var :- var )
+    /* In Java, variable can never be used before declaration */
+    /* ; rules( VarNeeded.var :- var ) */
 
   is-used-var-dec =
-    ?VarDec(Id(var), _)
-    ; where( <VarUsed> var )
+    ?VarDec(Id(var), expr)
+    ; (where( <VarUsed> var )
+       <+ where( sometd(?Invoke(_, _)) ))
 
   is-used-var-dec =
     ?VarDec(Id(var))
     ; where( <VarUsed> var )
 
   /**
-   * If-then-else statement. Propagate constants in condition, then try to
-   * evaluate if-then-else, otherwise propagate constants in both branches.
+   * If-then-else statement.
    * todo: simple if-then statement
-   * todo: eliminate if statement afterwards
    */
   dce-if-then-else-stm =
     (If(id, dce-stm, id) \VarNeeded,VarUsed/ If(id, id, dce-stm))
-    ; If(declare-vars-needed, id, id)
-/*    ; try(ElimIfThenElse) */
+    ; If(dce-expr, id, id)
+
+  /**
+   * While-statement.
+   */
+  dce-while-stm =
+    (\VarNeeded,VarUsed/* /**/ While(dce-expr, dce-stm))
+
+  dce-labeled-stm =
+    Labeled(id, dce-stm)
 
   declare-vars-needed =
     alltd({var :
@@ -116,3 +119,14 @@ strategies
           VarUsed+var   : var
         )
     })
+
+  /* return expression */
+  /* todo: refactor */
+  dce-expr =
+       ?Assign(ExprName(Id(var)), _)
+       ; if ElimAssign
+         then declare-vars-needed
+         else Assign(id, declare-vars-needed)
+              ; rules( VarNeeded-var :- var )
+         end
+    <+ declare-vars-needed
