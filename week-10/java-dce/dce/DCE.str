@@ -18,8 +18,8 @@ strategies
        dce-empty-stm
     <+ dce-block-stm
     <+ dce-expr-stm
-/*
     <+ dce-local-var-dec-stm
+/*
     <+ dce-if-then-else-stm
     <+ dce-while-stm
     <+ dce-labeled-stm
@@ -40,11 +40,14 @@ strategies
     ?Assign(_, _)
     ; if ElimAssign
       then dce-simple-expr
-      else ![ Assign(id, declare-vars-needed) ]
+      else ![ <Assign(id, declare-vars-needed)> ] end
 
   dce-simple-expr =
-    ; collect(?Invoke(_, _))
+    collect(?Invoke(_, _))
     ; reverse-map(declare-vars-needed)
+
+  dce-local-var-dec-stm =
+    id
 
   declare-vars-needed =
     alltd({var :
