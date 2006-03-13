@@ -30,8 +30,4 @@ strategies
 strategies
 
   dce-compilation-unit =
-    topdown(
-      try(
-        MethodDec(id, dce-method-body)
-      )
-    )
+    alltd( MethodDec(id, dce-method-body) )

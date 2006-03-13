@@ -8,7 +8,8 @@ strategies
     option-wrap(general-options,
       test-suite(!"WK10 assignment",
         observables-wrap(
-          simple-tests
+            simple-tests
+          ; complex-tests
         )
       )
     )
@@ -25,6 +26,53 @@ strategies
       "Test dce"
     , "class Foo { void foo() { int x = 0; int y = x * x; return x; } }"
     , "class Foo { void foo() { int x = 0; return x; } }"
+    )
+
+strategies
+
+  complex-tests = id
+  ; test-full-compilation-unit(|
+      "Test from TIL example"
+    , "class Hoi {
+            void foo() {
+                int x;
+                int y;
+                int z;
+                int a;
+                int b;
+                x = 1;
+                y = 2;
+                x = 3;
+                a = 7;
+                y = 3 + z;
+                if (y > 0) {
+                    z = 8;
+                    x = 3;
+                } else {
+                    x = 3;
+                    z = 7 + z;
+                }
+                b = 7 + z;
+                z = 10;
+                System.out.println(b + 10);
+            }
+        }
+      "
+    , "class Hoi {
+          void foo() {
+            int y;
+            int z;
+            int b;
+            y = 3 + z;
+            if(y > 0)
+              z = 8;
+            else
+              z = 7 + z;
+            b = 7 + z;
+            java.lang.System.out.println(b + 10);
+          }
+        }
+      "
     )
 
 /**

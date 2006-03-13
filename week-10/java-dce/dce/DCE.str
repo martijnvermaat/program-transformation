@@ -10,6 +10,8 @@ strategies
    * Don't use dce-stm here, because that may result in an Empty statement.
    * todo: scope rules
    * todo: fields
+   * todo: control flow
+   * todo: return stm
    * todo: declarations
    */
   dce-method-body =
@@ -22,14 +24,16 @@ strategies
     <+ dce-expr-stm
        ; try(ElimBlock)
     <+ dce-local-var-dec-stm
-/*
     <+ dce-if-then-else-stm
+       ; repeat(ElimIf)
+       ; try(dce-expr-stm)
+/*
     <+ dce-while-stm
     <+ dce-labeled-stm
 */
 
   dce-empty-stm =
-    Empty
+    ?Empty
 
   dce-block-stm =
     Block(
@@ -59,19 +63,22 @@ strategies
    * Local variable declaration.
    */
   dce-local-var-dec-stm =
-       LocalVarDecStm(LocalVarDec(id, id, 
-           reverse-map(dce-var-dec)
-         ; filter(is-used-var-dec)
-         ; not(?[])
-       ))
-    <+ Empty
+    ?LocalVarDecStm(_)
+    ; (
+         LocalVarDecStm(LocalVarDec(id, id, 
+             reverse-map(dce-var-dec)
+           ; filter(is-used-var-dec)
+           ; not(?[])
+         ))
+         <+ !Empty        /* todo: refactor */
+      )
 
   /**
    * Simple declaration.
    * todo: refactor
    */
   dce-var-dec =
-    VarDec(Id(?var))
+    ?VarDec(_)
 
   /**
    * Declaration with assignment.
@@ -89,6 +96,17 @@ strategies
   is-used-var-dec =
     ?VarDec(Id(var))
     ; where( <VarUsed> var )
+
+  /**
+   * If-then-else statement. Propagate constants in condition, then try to
+   * evaluate if-then-else, otherwise propagate constants in both branches.
+   * todo: simple if-then statement
+   * todo: eliminate if statement afterwards
+   */
+  dce-if-then-else-stm =
+    (If(id, dce-stm, id) \VarNeeded,VarUsed/ If(id, id, dce-stm))
+    ; If(declare-vars-needed, id, id)
+/*    ; try(ElimIfThenElse) */
 
   declare-vars-needed =
     alltd({var :

@@ -13,3 +13,12 @@ rules
 
   ElimBlock :
         Block([stm]) -> stm
+
+  ElimIf :
+        If(c, Empty) -> ExprStm(c)
+
+  ElimIf :
+        If(c, Empty, b) -> If(Not(c), b)
+
+  ElimIf :
+        If(c, b, Empty) -> If(c, b)
