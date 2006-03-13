@@ -7,17 +7,20 @@ strategies
 
   /**
    * Eliminate dead code in method body.
+   * Don't use dce-stm here, because that may result in an Empty statement.
    * todo: scope rules
    * todo: fields
    * todo: declarations
    */
   dce-method-body =
-    dce-stm
+    dce-block-stm
 
   dce-stm =
        dce-empty-stm
     <+ dce-block-stm
+       ; try(ElimBlock)
     <+ dce-expr-stm
+       ; try(ElimBlock)
     <+ dce-local-var-dec-stm
 /*
     <+ dce-if-then-else-stm
@@ -29,31 +32,69 @@ strategies
     Empty
 
   dce-block-stm =
-    Block( reverse-map(dce-stm) )
+    Block(
+        reverse-map(dce-stm)
+      ; filter(not(?Empty))
+    )
 
   dce-expr-stm =
     ?ExprStm( <id> )
     ; (dce-assign-expr <+ dce-simple-expr)
     ; !Block( <map(!ExprStm( <id> ) )> )
 
+  /* assumption: assignment is always toplevel expression */
   dce-assign-expr =
-    ?Assign(_, _)
+    ?Assign(ExprName(Id(var)), _)
     ; if ElimAssign
       then dce-simple-expr
-      else ![ <Assign(id, declare-vars-needed)> ] end
+      else ![ <Assign(id, declare-vars-needed)> ]
+           ; rules( VarNeeded.var :- var )
+      end
 
   dce-simple-expr =
     collect(?Invoke(_, _))
     ; reverse-map(declare-vars-needed)
 
+  /**
+   * Local variable declaration.
+   */
   dce-local-var-dec-stm =
-    id
+       LocalVarDecStm(LocalVarDec(id, id, 
+           reverse-map(dce-var-dec)
+         ; filter(is-used-var-dec)
+         ; not(?[])
+       ))
+    <+ Empty
+
+  /**
+   * Simple declaration.
+   * todo: refactor
+   */
+  dce-var-dec =
+    VarDec(Id(?var))
+
+  /**
+   * Declaration with assignment.
+   * todo: rewrite to simple declaration if not needed
+   *       (or not: expression may be needed)
+   */
+  dce-var-dec =
+    VarDec(Id(?var), declare-vars-needed)
+    ; rules( VarNeeded.var :- var )
+
+  is-used-var-dec =
+    ?VarDec(Id(var), _)
+    ; where( <VarUsed> var )
+
+  is-used-var-dec =
+    ?VarDec(Id(var))
+    ; where( <VarUsed> var )
 
   declare-vars-needed =
     alltd({var :
       ?ExprName(Id(var))
       ; rules(
-          VarNeeded.var : var
-          VarUsed.var   : var
-         )
+          VarNeeded+var : var
+          VarUsed+var   : var
+        )
     })

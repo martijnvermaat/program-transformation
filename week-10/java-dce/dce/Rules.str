@@ -7,3 +7,9 @@ rules
   ElimAssign :
         Assign(ExprName(Id(var)), e) -> e
         where <not(VarNeeded)> var
+
+  ElimBlock :
+        Block([]) -> Empty
+
+  ElimBlock :
+        Block([stm]) -> stm
