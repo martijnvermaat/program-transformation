@@ -152,6 +152,11 @@ strategies
     , "class Foo { public void foo() { int x; x = 2; while(x = 4) m(x); } }"
     , "class Foo { public void foo() { int x; while(x = 4) m(x); } }"
     )
+  ; test-full-compilation-unit(|
+      "Simple while"
+    , "class Foo { public void foo() { int x; while(x = 4) h(); x = 2; m(x); } }"
+    , "class Foo { public void foo() { int x; while(4) h(); x = 2; m(x); } }"
+    )
 
 strategies
 

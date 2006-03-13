@@ -45,11 +45,12 @@ strategies
   /* return list of expressions */
   dce-assign-expr =
     ?Assign(ExprName(Id(var)), _)
-    ; if ElimAssign
-      then dce-simple-expr
-      else ![ <Assign(id, declare-vars-needed)> ]
-           ; rules( VarNeeded.var :- var )
-      end
+    ; (
+          ElimAssign
+        < dce-simple-expr
+        + ![ <Assign(id, declare-vars-needed)> ]
+          ; rules( VarNeeded.var :- var )
+      )
 
   /* return list of expressions */
   dce-simple-expr =
@@ -124,9 +125,10 @@ strategies
   /* todo: refactor */
   dce-expr =
        ?Assign(ExprName(Id(var)), _)
-       ; if ElimAssign
-         then declare-vars-needed
-         else Assign(id, declare-vars-needed)
-              ; rules( VarNeeded-var :- var )
-         end
+       ; (
+             ElimAssign
+           < declare-vars-needed
+           + Assign(id, declare-vars-needed)
+             ; rules( VarNeeded.var :- var )
+         )
     <+ declare-vars-needed
