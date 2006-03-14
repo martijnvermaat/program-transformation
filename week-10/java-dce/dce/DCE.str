@@ -10,6 +10,7 @@ strategies
    * Don't use dce-stm here, because that may result in an Empty statement.
    * todo: return stm
    * todo: fields
+   * todo: dynamic rules don't need labels here
    */
   dce-method-body =
     {| VarNeeded, VarUsed : dce-block-stm |}

@@ -8,6 +8,7 @@ strategies
   /**
    * Propagate constants in method body. Scope PropConst rules so constant
    * values are not propagated outside this transformation.
+   * todo: PropConst rules don't need labels
    */
   propconst-method-body =
     {| PropConst : propconst-stat |}
