@@ -1,0 +1,65 @@
+module typestate/Expressions
+imports
+  typestate/Rules
+
+strategies
+
+  /**
+   * Propagate constants in expressions bottomup.
+   */
+  typestate-exp =
+    bottomup-exp(
+      try(
+           Typestate
+        <+ EvalBinOp
+        <+ EvalCond
+      )
+    )
+
+  /**
+   * Bottomup traversal over expressions.
+   */
+  bottomup-exp(s) =
+       typestate-var-assignment
+    <+ typestate-field-assignment
+    <+ typestate-method-invocation
+    <+ all(bottomup-exp(s))
+       ; s
+
+  /**
+   * Propagate constants in assignment to local variable.
+   */
+  typestate-var-assignment =
+    Assign(ExprName(Id(?var)), typestate-exp => e)
+    ; if <is-value> e then
+        rules( Typestate.var : ExprName(Id(var)) -> e )
+      else
+        rules( Typestate.var :- ExprName(Id(var)) )
+      end
+
+  /**
+   * Propagate constants in assignment to field. Field values are dependent on
+   * method invocations.
+   * Only support fully qualified field names.
+   */
+  typestate-field-assignment =
+    Assign(?field@Field(_, _), typestate-exp => e)
+    ; if <is-value> e then
+        rules( Typestate+field : field -> e
+               depends on [(field, "inv")] )
+      else
+        rules( Typestate+field :- field )
+      end
+
+  /**
+   * Throw away Typestate rules for all fields at method invocation.
+   */
+  typestate-method-invocation =
+    Invoke(id, typestate-exp)
+    ; undefine-Typestate(|"inv")
+
+  /**
+   * Succeed if current term is a fully evaluated expression.
+   */
+  is-value =
+    ?Lit(_)
