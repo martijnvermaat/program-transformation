@@ -1,112 +1,47 @@
 module typestate/Rules
 imports
-  libdryad
+  typestate/State
 
-/**
- * Expressions
- */
+signature
+  Call : Expr * List(Expr) -> Expr
+
 rules
 
-  /**
-   * Binary operations on integers.
-   */
+  TypestateCall :
+        Call(f{t*}, e*) -> Call(f{TypeState(ts),t*}, e*)
+        where <foldr(!Init, typestate-combine, typestate-of)> e* => ts
 
-  EvalBinOp :
-        Plus(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Deci(r)) where (<addS>(i1, i2) => r)
-
-  EvalBinOp :
-        Minus(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Deci(r)) where (<subtS>(i1, i2) => r)
-
-  EvalBinOp :
-        Mul(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Deci(r)) where (<mulS>(i1, i2) => r)
-
-  EvalBinOp :
-        Lt(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Bool(r)) where (if <ltS>(i1, i2) then
-                                                                  !True
-                                                                else
-                                                                  !False
-                                                                end
-                                                                  => r)
-
-  EvalBinOp :
-        Gt(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Bool(r)) where (if <gtS>(i1, i2) then
-                                                                  !True
-                                                                else
-                                                                  !False
-                                                                end
-                                                                  => r)
-  EvalBinOp :
-        LtEq(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Bool(r)) where (if <leqS>(i1, i2) then
-                                                                    !True
-                                                                  else
-                                                                    !False
-                                                                  end
-                                                                    => r)
-
-  EvalBinOp :
-        GtEq(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Bool(r)) where (if <geqS>(i1, i2) then
-                                                                    !True
-                                                                  else
-                                                                    !False
-                                                                  end
-                                                                    => r)
-
-  EvalBinOp :
-        Eq(Lit(Deci(i1)), Lit(Deci(i2))) -> Lit(Bool(r)) where (if <eq>(i1, i2) then
-                                                                  !True
-                                                                else
-                                                                  !False
-                                                                end
-                                                                  => r)
-
-  /**
-   * Binary operations on booleans.
-   */
-
-  EvalBinOp :
-        And(Lit(Bool(b1)), Lit(Bool(b2))) -> Lit(Bool(r)) where (if <?True>b1; <?True>b2 then
-                                                                   !True
-                                                                 else
-                                                                   !False
-                                                                 end
-                                                                   => r)
-
-  EvalBinOp :
-        Or(Lit(Bool(b1)), Lit(Bool(b2))) -> Lit(Bool(r)) where (if <?False>b1; <?False>b2 then
-                                                                  !False
-                                                                else
-                                                                  !True
-                                                                end
-                                                                  => r)
-
-  /**
-   * Conditional expressions.
-   */
-
-  EvalCond :
-        Cond(Lit(Bool(True)), e1, e2) -> e1
-
-  EvalCond :
-        Cond(Lit(Bool(False)), e1, e2) -> e2
-
-/**
- * Control flow statements
- */
 rules
 
-  /**
-   * Evaluate if-then-else statement.
-   */
+  OpToCall :
+        c#(args){t*} -> Call(c#(args){t*}, args)
+        where <is-op-constructor>(c)
 
-  RewriteIfThenElse :
-        If(Lit(Bool(True)), b1, b2) -> b1
+  CallToOp :
+        Call(c#(args){t*}, _) -> c#(args){t*}
+        where <is-op-constructor>(c)
 
-  RewriteIfThenElse :
-        If(Lit(Bool(False)), b1, b2) -> b2
+rules
 
-  /**
-   * Evaluate while statement with constant false condition.
-   */
+  InvokeToCall :
+        Invoke(m, args){t*} -> Call(Invoke(m, args){t*}, args)
 
-  RewriteWhile :
-        While(Lit(Bool(False)), _) -> Block([])
+  CallToInvoke :
+        Call(Invoke(m, args){t*}, _) -> Invoke(m, args){t*}
+
+strategies
+
+  is-op-constructor =
+    <elem>(id, [
+        "Plus",
+        "Minus",
+        "Mul",
+        "Lt",
+        "Gt",
+        "LtEq",
+        "GtEq",
+        "Eq",
+        "And",
+        "Or",
+        "Cond"
+        ])

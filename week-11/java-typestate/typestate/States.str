@@ -1,0 +1,17 @@
+module typestate/States
+
+signature
+  constructors
+    TypeState : Property -> TypeState
+    UnInit    : Property
+    Init      : Property
+    Dunno     : Property
+
+strategies
+
+  typestate-combine : (UnInit, UnInit) -> UnInit
+  typestate-combine : (Init, Init)     -> Init
+  typestate-combine : (Init, UnInit)   -> Dunno
+  typestate-combine : (UnInit, Init)   -> Dunno
+  typestate-combine : (Dunno, _)       -> Dunno
+  typestate-combine : (_, Dunno)       -> Dunno

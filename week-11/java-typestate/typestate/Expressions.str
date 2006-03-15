@@ -1,5 +1,6 @@
 module typestate/Expressions
 imports
+  typestate/States
   typestate/Rules
 
 strategies

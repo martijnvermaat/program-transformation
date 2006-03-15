@@ -1,12 +1,12 @@
 module typestate/Statements
 imports
-  libdryad
+  typestate/States
   typestate/Expressions
 
 strategies
 
   typestate-method-body =
-    {| TypeState : typestate-stat |}
+    {| Typestate : typestate-stat |}
 
   typestate-stat =
        typestate-empty-stm
@@ -39,7 +39,7 @@ strategies
     ExprStm(typestate-exp)
 
   /**
-   * Propagate constants in local variable declaration.
+   * Analyse typestate in local variable declaration.
    */
   typestate-local-var-dec-stm =
     LocalVarDecStm(LocalVarDec(id, id, map(typestate-var-dec)))
@@ -49,14 +49,15 @@ strategies
    */
   typestate-var-dec =
     VarDec(Id(?var))
-    ; rules ( Typestate+var :- ExprName(Id(var)) )
+    ; rules ( Typestate : var -> UnInit )
 
   /**
    * Declaration with assignment.
    */
   typestate-var-dec =
     VarDec(Id(?var), typestate-exp => e)
-    ; rules ( Typestate+var :- ExprName(Id(var)) )
-    ; if <is-value>e then
-        rules ( Typestate.var :  ExprName(Id(var)) -> e )
-      end
+    ; where(<typestate-of>e => ets)
+    ; rules (
+        Typestate : var -> UnInit
+        Typestate : var -> Init  /* todo: parameterize this to use ets */
+      )
