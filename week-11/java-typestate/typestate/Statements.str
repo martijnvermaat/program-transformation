@@ -5,43 +5,35 @@ imports
 
 strategies
 
-  /**
-   * Propagate constants in method body. Scope Typestate rules so constant
-   * values are not propagated outside this transformation.
-   */
   typestate-method-body =
-    {| Typestate : typestate-stat |}
+    {| TypeState : typestate-stat |}
 
-  /**
-   * Propagate constants in statement.
-   */
   typestate-stat =
        typestate-empty-stm
     <+ typestate-block-stm
     <+ typestate-expr-stm
     <+ typestate-local-var-dec-stm
+/*
     <+ typestate-if-then-else-stm
     <+ typestate-while-stm
     <+ typestate-labeled-stm
-/*  <+ all(typestate-stat) */
+*/
+    <+ debug(!"unsupported statement: ")
 
   /**
    * Do nothing with empty statement.
    */
   typestate-empty-stm =
-    Empty
+    ?Empty
 
   /**
    * Statements in block.
-   * Don't scope Typestate rules on block level, because Java does not know
-   * shadowing. Also, field value propagation would have to be implemented
-   * with seperate rule names.
    */
   typestate-block-stm =
     Block( map(typestate-stat) )
 
   /**
-   * Propagate constants in expression.
+   * Propagate typestate in expression.
    */
   typestate-expr-stm =
     ExprStm(typestate-exp)
@@ -68,28 +60,3 @@ strategies
     ; if <is-value>e then
         rules ( Typestate.var :  ExprName(Id(var)) -> e )
       end
-
-  /**
-   * Labeled statement.
-   */
-  typestate-labeled-stm =
-    Labeled(id, typestate-stat)
-
-  /**
-   * If-then-else statement. Propagate constants in condition, then try to
-   * evaluate if-then-else, otherwise propagate constants in both branches.
-   * todo: simple if-then statement
-   */
-  typestate-if-then-else-stm =
-    If(typestate-exp, id, id)
-    ; (RewriteIfThenElse; typestate-stat
-       <+ If(id, typestate-stat, id) /Typestate\ If(id, id, typestate-stat))
-
-  /**
-   * While-statement. Propagate constants while intersection of Typestate
-   * reaches a fixpoint.
-   */
-  typestate-while-stm =
-    While(typestate-exp, id)
-    ; (RewriteWhile
-       <+ (/Typestate\* While(typestate-exp, typestate-stat)))
