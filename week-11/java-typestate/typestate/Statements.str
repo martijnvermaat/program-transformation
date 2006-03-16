@@ -73,8 +73,13 @@ strategies
         If(id, id, typestate-stm)
       )
 
+  /**
+   * todo: make tests for assignment in condition
+   *       (condition is always executed)
+   * todo: looping body does matter for null annotations
+   */
   typestate-while-stm =
-    ?While(_, _)
+    While(typestate-exp, id)
     ; merge-Typestate(id, While(typestate-exp, typestate-stm))
 
   /**
