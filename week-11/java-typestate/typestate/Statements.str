@@ -5,17 +5,32 @@ imports
 
 strategies
 
-  typestate-method-body =
-    {| Typestate : typestate-stat |}
+  typestate-method-dec =
+    {| Typestate :
+       MethodDec(typestate-method-head, typestate-method-body)
+    |}
 
-  typestate-stat =
+  /**
+   * todo: look at other childs of MethodDecHead?
+   */
+  typestate-method-head =
+    collect(?Param(_, _, _))
+    ; map({ var :
+        ?Param(_, _, Id(var))
+        ; rules ( Typestate : var -> Dunno )
+      })
+
+  typestate-method-body =
+    typestate-stm
+
+  typestate-stm =
        typestate-empty-stm
     <+ typestate-block-stm
     <+ typestate-expr-stm
     <+ typestate-local-var-dec-stm
-/*
     <+ typestate-if-then-else-stm
     <+ typestate-while-stm
+/*
     <+ typestate-labeled-stm
 */
     <+ debug(!"unsupported statement: ")
@@ -30,7 +45,7 @@ strategies
    * Statements in block.
    */
   typestate-block-stm =
-    Block( map(typestate-stat) )
+    Block( map(typestate-stm) )
 
   /**
    * Propagate typestate in expression.
@@ -50,6 +65,17 @@ strategies
   typestate-var-dec =
     VarDec(Id(?var))
     ; rules ( Typestate : var -> UnInit )
+
+  typestate-if-then-else-stm =
+    If(typestate-exp, id, id)
+    ; merge-Typestate(
+        If(id, typestate-stm, id),
+        If(id, id, typestate-stm)
+      )
+
+  typestate-while-stm =
+    ?While(_, _)
+    ; merge-Typestate(id, While(typestate-exp, typestate-stm))
 
   /**
    * Declaration with assignment.

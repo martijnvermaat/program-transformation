@@ -1,15 +1,27 @@
 module typestate/Rules
 imports
-  typestate/State
+  typestate/States
 
 signature
-  Call : Expr * List(Expr) -> Expr
+  constructors
+    Call : Expr * List(Expr) -> Expr
 
 rules
 
+  TypestateVar :
+        ExprName(Id(var)){t*} -> ExprName(Id(var)){TypeState(ts), t*}
+        where <Typestate>var => ts
+
+  TypestateLiteral :
+        Lit(l){t*} -> Lit(l){TypeState(Init), t*}
+
   TypestateCall :
-        Call(f{t*}, e*) -> Call(f{TypeState(ts),t*}, e*)
+        Call(f{t*}, e*) -> Call(f{TypeState(ts), t*}, e*)
         where <foldr(!Init, typestate-combine, typestate-of)> e* => ts
+
+  TypestateVarAssignment :
+        Assign(ExprName(Id(var)), e){t*} -> Assign(ExprName(Id(var)), e){TypeState(ts), t*}
+        where <typestate-of> e => ts
 
 rules
 
@@ -21,8 +33,6 @@ rules
         Call(c#(args){t*}, _) -> c#(args){t*}
         where <is-op-constructor>(c)
 
-rules
-
   InvokeToCall :
         Invoke(m, args){t*} -> Call(Invoke(m, args){t*}, args)
 
@@ -32,7 +42,7 @@ rules
 strategies
 
   is-op-constructor =
-    <elem>(id, [
+    <elem>(<id>, [
         "Plus",
         "Minus",
         "Mul",

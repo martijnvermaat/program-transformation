@@ -15,3 +15,50 @@ strategies
   typestate-combine : (UnInit, Init)   -> Dunno
   typestate-combine : (Dunno, _)       -> Dunno
   typestate-combine : (_, Dunno)       -> Dunno
+
+strategies
+
+  merge-Typestate(s1, s2) =
+    dr-symbolic-merge(
+      typestate-combine
+      , Typestate
+      , aux-Typestate(|(), ())
+      , redef-Typestate, s1, s2
+      | "Typestate" )
+
+  redef-Typestate =
+    ?(x, o); rules ( Typestate : x -> o )
+
+strategies
+
+  dr-symbolic-merge(merge, call, aux, redef, s1, s2 | R) =
+    where(
+      dr-get-rule-set(|R) => rs2
+      ; dr-start-change-set(|R)
+    )
+    ; s1
+    ; where(
+        dr-get-rule-set(|R) => rs1
+        ; <dr-set-rule-set(|R)> rs2
+        ; dr-start-change-set(|R)
+      )
+    ; s2
+    ; dr-symbolic-merge-rulesets(merge, call, aux, redef | rs1, R)
+
+  dr-symbolic-merge-rulesets(merge, call, aux, redef | rs1, R) =
+    where(
+      !rs1 => [ChangeSet(_, _, <id>) | _]
+      ; hashtable-keys
+      ; map(Snd
+            ; !(<id>, <merge>(<dr-symbolic-lookup(aux|rs1)>, <call>))
+            ; redef)
+      ; dr-get-rule-set(|R) => rs2 => [ChangeSet(_, _, <id>) | _]
+      ; hashtable-keys
+      ; map(Snd
+            ; !(<id>, <merge>(<dr-symbolic-lookup(aux|rs1)>, <call>))
+            ; redef)
+      ; dr-commit-change-set(|R)
+    )
+
+  dr-symbolic-lookup(aux|rs) =
+    ?x; <dr-lookup-rule(|x)> rs; ?[<aux>|_]

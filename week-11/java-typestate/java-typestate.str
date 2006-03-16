@@ -12,8 +12,10 @@ strategies
     ; map(
         get-ast
         ; typestate-compilation-unit
+/*
         ; write-to
         ; xtc-transform(!"pp-java",pass-verbose)
+*/
       )
 
   /**
@@ -32,7 +34,7 @@ strategies
   typestate-compilation-unit =
     topdown(
       try(
-        /* todo: look at method parameters */
-        MethodDec(id, typestate-method-body)
+        ?MethodDec(_, _)
+        ; typestate-method-dec
       )
     )
