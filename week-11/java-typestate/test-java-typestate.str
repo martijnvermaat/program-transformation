@@ -6,12 +6,10 @@ strategies
 
   main-test-java-typestate =
     option-wrap(general-options,
-      test-suite(!"WK10 assignment",
+      test-suite(!"WK11 assignment",
         observables-wrap(
           simple-tests
-        ; field-tests
         ; control-flow-tests
-        ; complex-tests
         )
       )
     )
@@ -19,558 +17,71 @@ strategies
 strategies
 
   simple-tests = id
-  ; test-compilation-unit(|
-      "Evaluation to simple constant value"
-    , "class Foo { public void foo() { int x = 3; result : x * x; } }"
-    , ExprStm(Lit(Deci("9")))
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(UniInit), _*} )
+    | "Simple variable"
+    , "class Foo { public void foo() { int x; result : x; } }"
     )
   ; test-compilation-unit(
-     not(oncetd(?ExprName(Id("x"))))
-    | "Evaluation to simple constant value"
-    , "class Foo { public void foo() { int x = 3; int y; result : x * y; } }"
+      ?ExprStm( _{TypeState(Init), _*} )
+    | "Simple initialized variable"
+    , "class Foo { public void foo() { int x = 1; result : x; } }"
     )
   ; test-compilation-unit(
-     oncetd(?ExprName(Id("y")))
-    | "Evaluation to simple constant value"
-    , "class Foo { public void foo() { int x = 3; int y; result : x * y; } }"
-    )
-
-strategies
-
-  field-tests = id
-  ; test-compilation-unit(|
-      "Evaluation of field to simple constant value"
-    , "class Foo { int x; public void foo() { Foo.x = 3; result : Foo.x * Foo.x; } }"
-    , ExprStm(Lit(Deci("9")))
-    )
-  ; test-compilation-unit(|
-      "Evaluation of field to simple constant value"
-    , "class Foo { int x; int m; public void foo() { Foo.x = 3; Foo.x = Foo.m; result : Foo.x; } }"
-    , ExprStm(Field(TypeName(PackageName([]),Id("Foo")),Id("x")))
+      ?ExprStm( _{TypeState(Init), _*} )
+    | "Simple initialized variable"
+    , "class Foo { public void foo() { int x; x = 1; result : x; } }"
     )
   ; test-compilation-unit(
-     not(oncetd(?Field(TypeName(PackageName([]),Id("Foo")),Id("x"))))
-    | "Evaluation of field to simple constant value"
-    , "class Foo { int x; public void foo() { Foo.x = 3; int y; result : Foo.x * y; } }"
+      ?ExprStm( _{TypeState(Init), _*} )
+    | "Simple constant value"
+    , "class Foo { public void foo() { result : 4; } }"
     )
   ; test-compilation-unit(
-     oncetd(?Field(TypeName(PackageName([]),Id("Foo")),Id("x")))
-    | "Evaluation of field to simple constant value"
-    , "class Foo { int x; public void foo() { int y; result : Foo.x * y; } }"
+      ?ExprStm( _{TypeState(Init), _*} )
+    | "Simple constant value expression"
+    , "class Foo { public void foo() { result : 4 + 9; } }"
     )
-  ; test-compilation-unit(|
-      "Evaluation of field after method call"
-    , "class Foo { int x; public void foo() { Foo.x = 2; result : Foo.x; } }"
-    , ExprStm(Lit(Deci("2")))
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(UnInit), _*} )
+    | "Simple constant value expression"
+    , "class Foo { public void foo() { int x; result : 4 + x; } }"
     )
-  ; test-compilation-unit(|
-      "Evaluation of field after method call"
-    , "class Foo { int x; public void foo() { Foo.x = 2; System.out.println(\"hoi\"); result : Foo.x; } }"
-    , ExprStm(Field(TypeName(PackageName([]),Id("Foo")),Id("x")))
-    )
-  ; test-compilation-unit(|
-      "Evaluation of field after method call"
-    , "class Foo { int x; public void foo() { int y = 1; Foo.x = 2; System.out.println(\"hoi\"); result : y; } }"
-    , ExprStm(Lit(Deci("1")))
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(UnInit), _*} )
+    | "Simple initialized variable"
+    , "class Foo { public void foo() { int x, y; x = y; result : x; } }"
     )
 
 strategies
 
   control-flow-tests = id
-  ; test-compilation-unit(|
-      "Simple if-then-else statement"
-    , "class Foo { boolean m; public void foo() { int x = 3, y = 2; if (Foo.m) { x = 1; } else { x = 1; y = x; } result : x; } }"
-    , ExprStm(Lit(Deci("1")))
-    )
-  ; test-compilation-unit(|
-      "Simple if-then-else statement"
-    , "class Foo { boolean m; public void foo() { Foo.m = true; int x = 3, y = 2; if (Foo.m) { x = 1; } else { x = 1; y = x; } result : x; } }"
-    , ExprStm(Lit(Deci("1")))
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(UniInit), _*} )
+    | "Simple if-then-else statement"
+    , "class Foo { public void foo() { int x; if (true) ; else ; result : x; } }"
     )
   ; test-compilation-unit(
-     not(oncetd(?If(_, _, _)))
-    | "Simple if-then-else statement (evaluated)"
-    , "class Foo { boolean m; public void foo() { Foo.m = true; int x = 3, y = 2; result : if (Foo.m) { x = 1; } else { x = 1; y = x; } x; } }"
-    )
-  ; test-compilation-unit(|
-      "Simple if-then-else statement"
-    , "class Foo { boolean m; public void foo() { int x = 3, y = 2; if (Foo.m) { x = 1; } else { x = 1; y = x; } result : y; } }"
-    , ExprStm(ExprName(Id("y")))
-    )
-  ; test-compilation-unit(|
-      "Simple if-then-else statement (evaluated)"
-    , "class Foo { boolean m; public void foo() { Foo.m = false; int x = 3, y = 2; if (Foo.m) { x = 1; } else { x = 1; y = x + 4; } result: y; } }"
-    , ExprStm(Lit(Deci("5")))
-    )
-  ; test-compilation-unit(|
-      "Simple while statement"
-    , "class Foo { public void foo() { int x = 3; while(x > y) { x = 3; } result : x; } }"
-    , ExprStm(Lit(Deci("3")))
-    )
-  ; test-compilation-unit(|
-      "Simple while statement"
-    , "class Foo { public void foo() { while(x > y) { x = 3; } result : x; } }"
-    , ExprStm(Field(Id("x")))
-    )
-  ; test-compilation-unit(|
-      "Simple while statement"
-    , "class Foo { public void foo() { int x = 3; while(x > y) { x = 2; } result : x; } }"
-    , ExprStm(ExprName(Id("x")))
-    )
-  ; test-compilation-unit(|
-      "Simple while statement with constant false condition"
-    , "class Foo { public void foo() { int x; result: while(false) { x = 2; } x; } }"
-    , Block([])
-    )
-  ; test-compilation-unit(|
-      "Simple while statement with constant false condition"
-    , "class Foo { public void foo() { int x = 3; boolean m = false; result: while(m) { x = 2; } x; } }"
-    , Block([])
-    )
-  ; test-compilation-unit(|
-      "Simple while statement with constant false condition"
-    , "class Foo { public void foo() { int x = 3; boolean m = false; while(m) { x = 2; } result : x; } }"
-    , ExprStm(Lit(Deci("3")))
+      ?ExprStm( _{TypeState(Init), _*} )
+    | "Simple if-then-else statement"
+    , "class Foo { public void foo() { int x = 1; if (true) ; else ; result : x; } }"
     )
   ; test-compilation-unit(
-     not(oncetd(?If(_, _, _)))
-    | "Complex while statement"
-    , "class Foo {
-            boolean m;
-            void foo() {
-                int w = 20,
-                    x = 20,
-                    y = 20,
-                    z = 10;
-                while (m) {
-                    if (x == 20) {
-                        w = 20;
-                    } else {
-                        w = 10;
-                    }
-                    if (y == 20) {
-                        x = 20;
-                    } else {
-                        x = 10;
-                    }
-result :            if (z == 20) {
-                        y = 20;
-                    } else {
-                        y = 10;
-                    }
-                    w;
-                    x;
-                    y;
-                    z;
-                }
-                w;
-                x;
-                y;
-                z;
-            }
-        }
-      "
+      ?ExprStm( _{TypeState(Init), _*} )
+    | "Simple if-then-else statement"
+    , "class Foo { public void foo() { int x; if (true) x=1; else x=4; result : x; } }"
     )
-  ; test-compilation-unit(|
-      "Complex while statement"
-    , "class Foo {
-            boolean m;
-            void foo() {
-                int w = 20,
-                    x = 20,
-                    y = 20,
-                    z = 10;
-                while (m) {
-                    if (x == 20) {
-                        w = 20;
-                    } else {
-                        w = 10;
-                    }
-                    if (y == 20) {
-                        x = 20;
-                    } else {
-                        x = 10;
-                    }
-                    if (z == 20) {
-                        y = 20;
-                    } else {
-                        y = 10;
-                    }
-                    w;
-                    x;
-result :            y;
-                    z;
-                }
-                w;
-                x;
-                y;
-                z;
-            }
-        }
-      "
-    , ExprStm(Lit(Deci("10")))
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(Init), _*} )
+    | "Simple if-then-else statement"
+    , "class Foo { public void foo() { int x = 1; if (true) x=1; else ; result : x; } }"
     )
-  ; test-compilation-unit(|
-      "Complex while statement"
-    , "class Foo {
-            boolean m;
-            void foo() {
-                int w = 20,
-                    x = 20,
-                    y = 20,
-                    z = 10;
-                while (m) {
-                    if (x == 20) {
-                        w = 20;
-                    } else {
-                        w = 10;
-                    }
-                    if (y == 20) {
-                        x = 20;
-                    } else {
-                        x = 10;
-                    }
-                    if (z == 20) {
-                        y = 20;
-                    } else {
-                        y = 10;
-                    }
-                    w;
-                    x;
-                    y;
-result :            z;
-                }
-                w;
-                x;
-                y;
-                z;
-            }
-        }
-      "
-    , ExprStm(Lit(Deci("10")))
-    )
-  ; test-compilation-unit(|
-      "Complex while statement"
-    , "class Foo {
-            boolean m;
-            void foo() {
-                int w = 20,
-                    x = 20,
-                    y = 20,
-                    z = 10;
-                while (m) {
-                    if (x == 20) {
-                        w = 20;
-                    } else {
-                        w = 10;
-                    }
-                    if (y == 20) {
-                        x = 20;
-                    } else {
-                        x = 10;
-                    }
-                    if (z == 20) {
-                        y = 20;
-                    } else {
-                        y = 10;
-                    }
-                    w;
-                    x;
-                    y;
-                    z;
-                }
-                w;
-                x;
-result :        y;
-                z;
-            }
-        }
-      "
-    , ExprStm(ExprName(Id("y")))
-    )
-  ; test-compilation-unit(|
-      "Complex while statement"
-    , "class Foo {
-            boolean m;
-            void foo() {
-                int w = 20,
-                    x = 20,
-                    y = 20,
-                    z = 10;
-                while (m) {
-                    if (x == 20) {
-                        w = 20;
-                    } else {
-                        w = 10;
-                    }
-                    if (y == 20) {
-                        x = 20;
-                    } else {
-                        x = 10;
-                    }
-                    if (z == 20) {
-                        y = 20;
-                    } else {
-                        y = 10;
-                    }
-                    w;
-                    x;
-                    y;
-                    z;
-                }
-                w;
-                x;
-                y;
-result :        z;
-            }
-        }
-      "
-    , ExprStm(Lit(Deci("10")))
-    )
-  ; test-compilation-unit(|
-      "Another while statement"
-    , "class Foo {
-            int m;
-            int hoi() { return 2; }
-            void foo() {
-                int a, i, j;
-                a = 1;
-                i = 0;
-                while (i < m) {
-                    j = a;
-                    a = Foo.hoi();
-                    a = j;
-                    i = i + 1;
-                }
-result :        a;
-            }
-        }
-      "
-    , ExprStm(Lit(Deci("1")))
-    )
-  ; test-compilation-unit(|
-      "Another while statement"
-    , "class Foo {
-            int m;
-            int hoi() { return 2; }
-            void foo() {
-                int a, i, j;
-                a = 1;
-                i = 0;
-                while (i < m) {
-                    j = a;
-                    a = Foo.hoi();
-                    a = j;
-                    i = i + 1;
-                }
-result :        i;
-            }
-        }
-      "
-    , ExprStm(ExprName(Id("i")))
-    )
-  ; test-compilation-unit(|
-      "Another while statement"
-    , "class Foo {
-            int m;
-            int hoi() { return 2; }
-            void foo() {
-                int a, i, j;
-                a = 1;
-                i = 0;
-                while (i < m) {
-                    j = a;
-                    a = Foo.hoi();
-                    a = j;
-                    i = i + 1;
-                }
-result :        j;
-            }
-        }
-      "
-    , ExprStm(ExprName(Id("j")))
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(Dunno), _*} )
+    | "Simple if-then-else statement"
+    , "class Foo { public void foo() { int x; if (true) x=1; else ; result : x; } }"
     )
 
-strategies
-
-  complex-tests = id
-  ; test-compilation-unit(|
-      "Test from TIL example"
-    , "class Foo {
-            void foo() {
-                int x; 
-                int y;
-                int z; 
-                int a; 
-                int b;
-                x = 1;          // constant value
-                y = 2;          // not constant
-                x = 3;          // override
-                a = x + 4;      // compute constant
-                y = x + z;      // not constant
-                if (y > 0) {
-                    z = 8;
-                    x = z - 5;  // constant
-                } else {
-                    x = a - 4;  // constant
-                    z = a + z;  // z is not constant
-                }
-                b = a + z;      // a still constant, z not
-                z = a + x;
-result :        b + z;
-            }
-        }
-      "
-    , ExprStm(Plus(ExprName(Id("b")), Lit(Deci("10"))))
-    )
-  ; test-compilation-unit(|
-      "Test from TIL example"
-    , "class Foo {
-            void foo() {
-                int x; 
-                int y;
-                int z; 
-                int a; 
-                int b;
-                x = 1;          // constant value
-                y = 2;          // not constant
-                x = 3;          // override
-                a = x + 4;      // compute constant
-                y = x + z;      // not constant
-                if (y > 0) {
-                    z = 8;
-                    x = z - 5;  // constant
-result :            x;
-                } else {
-                    x = a - 4;  // constant
-                    z = a + z;  // z is not constant
-                }
-                b = a + z;      // a still constant, z not
-                z = a + x;
-                b + z;
-            }
-        }
-      "
-    , ExprStm(Lit(Deci("3")))
-    )
-  ; test-compilation-unit(|
-      "Test from TIL example"
-    , "class Foo {
-            void foo() {
-                int x; 
-                int y;
-                int z; 
-                int a; 
-                int b;
-                x = 1;          // constant value
-                y = 2;          // not constant
-                x = 3;          // override
-                a = x + 4;      // compute constant
-                y = x + z;      // not constant
-                if (y > 0) {
-                    z = 8;
-                    x = z - 5;  // constant
-                } else {
-                    x = a - 4;  // constant
-                    z = a + z;  // z is not constant
-result :            x;
-                }
-                b = a + z;      // a still constant, z not
-                z = a + x;
-                b + z;
-            }
-        }
-      "
-    , ExprStm(Lit(Deci("3")))
-    )
-  ; test-compilation-unit(|
-      "Test from TIL example"
-    , "class Foo {
-            void foo() {
-                int x; 
-                int y;
-                int z; 
-                int a; 
-                int b;
-                x = 1;          // constant value
-                y = 2;          // not constant
-                x = 3;          // override
-                a = x + 4;      // compute constant
-                y = x + z;      // not constant
-                if (y > 0) {
-                    z = 8;
-                    x = z - 5;  // constant
-                } else {
-                    x = a - 4;  // constant
-                    z = a + z;  // z is not constant
-                }
-result :        x;
-                b = a + z;      // a still constant, z not
-                z = a + x;
-                b + z;
-            }
-        }
-      "
-    , ExprStm(Lit(Deci("3")))
-    )
-  ; test-compilation-unit(|
-      "Test from TIL example"
-    , "class Foo {
-            void foo() {
-                int x; 
-                int y;
-                int z; 
-                int a; 
-                int b;
-                x = 1;          // constant value
-                y = 2;          // not constant
-                x = 3;          // override
-                a = x + 4;      // compute constant
-                y = x + z;      // not constant
-                if (y > 0) {
-                    z = 8;
-                    x = z - 5;  // constant
-                } else {
-                    x = a - 4;  // constant
-                    z = a + z;  // z is not constant
-                }
-result :        z;
-                b = a + z;      // a still constant, z not
-                z = a + x;
-                b + z;
-            }
-        }
-      "
-    , ExprStm(ExprName(Id("z")))
-    )
-  ; test-compilation-unit(|
-      "Scoping of rules at method body level"
-    , "class Foo {
-            void foo() {
-                int y = 2;
-            }
-            void bar() {
-                int y;
-result :        y;
-            }
-        }
-      "
-    , ExprStm(ExprName(Id("y")))
-    )
-  ; test-compilation-unit(|
-      "Scoping of rules at method body level"
-    , "class Foo {
-            int y;
-            void foo() {
-                Foo.y = 2;
-            }
-            void bar() {
-result :        Foo.y;
-            }
-        }
-      "
-    , ExprStm(Field(TypeName(PackageName([]),Id("Foo")),Id("y")))
-    )
 
 /**
  * Testing utils
@@ -584,12 +95,12 @@ strategies
     , <process-input> src   
     , check
     )
-    
+
   test-compilation-unit(|msg, src, result) =
     apply-test(!msg
     , typestate-compilation-unit
       ; get-test-result
-      ; strip-annos
+/*      ; strip-annos */
     , <process-input> src   
     , !result
     )

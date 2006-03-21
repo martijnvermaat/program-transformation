@@ -30,9 +30,7 @@ strategies
     <+ typestate-local-var-dec-stm
     <+ typestate-if-then-else-stm
     <+ typestate-while-stm
-/*
     <+ typestate-labeled-stm
-*/
     <+ debug(!"unsupported statement: ")
 
   /**
@@ -64,7 +62,23 @@ strategies
    */
   typestate-var-dec =
     VarDec(Id(?var))
-    ; rules ( Typestate : var -> UnInit )
+    ; where(typestate-declaration-init => ts)
+    ; rules ( Typestate : var -> ts )
+
+  /**
+   * Declaration with assignment.
+   */
+  typestate-var-dec =
+    VarDec(Id(?var), typestate-exp => e)
+    ; where(
+        <typestate-assignment-rule>(
+          <typestate-declaration-init>,
+          <typestate-of>e
+        ) => ts
+      )
+    ; rules (
+        Typestate : var -> ts
+      )
 
   typestate-if-then-else-stm =
     If(typestate-exp, id, id)
@@ -83,12 +97,7 @@ strategies
     ; merge-Typestate(id, While(typestate-exp, typestate-stm))
 
   /**
-   * Declaration with assignment.
+   * Labeled statement.
    */
-  typestate-var-dec =
-    VarDec(Id(?var), typestate-exp => e)
-    ; where(<typestate-of>e => ets)
-    ; rules (
-        Typestate : var -> UnInit
-        Typestate : var -> Init  /* todo: parameterize this to use ets */
-      )
+  typestate-labeled-stm =
+    Labeled(id, typestate-stm)

@@ -25,10 +25,14 @@ strategies
 
   typestate-var-assignment =
     Assign(ExprName(Id(?var)), typestate-exp => e)
+    ; where(
+        <typestate-assignment-rule>(
+          <Typestate>var,
+          <typestate-of>e
+        ) => ts
+      )
+    ; rules ( Typestate : var -> ts )
     ; TypestateVarAssignment
-    ; where(<typestate-of>e => ts)
-    ; rules ( Typestate : var -> Init )
-
 
   typestate-of :
     e{t*} -> ts

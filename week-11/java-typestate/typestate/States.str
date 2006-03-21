@@ -9,12 +9,40 @@ signature
 
 strategies
 
+  /**
+   * Combining branches in control flow.
+   */
   typestate-combine : (UnInit, UnInit) -> UnInit
   typestate-combine : (Init, Init)     -> Init
   typestate-combine : (Init, UnInit)   -> Dunno
   typestate-combine : (UnInit, Init)   -> Dunno
   typestate-combine : (Dunno, _)       -> Dunno
   typestate-combine : (_, Dunno)       -> Dunno
+
+  /**
+   * Combining call arguments to returned state.
+   */
+  typestate-call-combine : (Init, Init)   -> Init
+  typestate-call-combine : (Dunno, Dunno) -> Dunno
+  typestate-call-combine : (Dunno, Init)  -> Dunno
+  typestate-call-combine : (Init, Dunno)  -> Dunno
+  typestate-call-combine : (UnInit, _)    -> UnInit
+  typestate-call-combine : (_, UnInit)    -> UnInit
+  typestate-call-init    = !Init
+
+  /**
+   * Propagation of typestate in assignment. Like this:
+   *   (state-before, state-of-expr) -> state-after
+   *
+   * You can do here whatever you want. For the moment the variable just gets
+   * the state of the assigned expression.
+   */
+  typestate-assignment-rule : (_, s) -> s
+
+  /**
+   * Initial typestate for variable upon declaration.
+   */
+  typestate-declaration-init = !UnInit
 
 strategies
 
@@ -30,6 +58,8 @@ strategies
     ?(x, o); rules ( Typestate : x -> o )
 
 strategies
+
+  /* todo: move some of this to Util or something */
 
   dr-symbolic-merge(merge, call, aux, redef, s1, s2 | R) =
     where(
