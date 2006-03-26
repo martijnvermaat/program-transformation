@@ -14,10 +14,22 @@ rules
 
   TypestateLiteral :
         Lit(l){t*} -> Lit(l){TypeState(Init), t*}
+        where not(<?Null>l <+ <?String(_)>l)
+
+  TypestateLiteral :
+        Lit(String(s)){t*} -> Lit(String(s)){TypeState(NotNull), t*}
+
+  TypestateLiteral :
+        Lit(Null){t*} -> Lit(Null){TypeState(Null), t*}
+
+  TypestateNewInstance :
+        NewInstance(ta, t, e, b){t*} -> NewInstance(ta, t, e, b){TypeState(ts), t*}
+        where typestate-instance-init => ts
 
   TypestateCall :
         Call(f{t*}, e*) -> Call(f{TypeState(ts), t*}, e*)
-        where <foldr(typestate-call-init, typestate-call-combine, typestate-of)> e* => ts
+        where <type-attr> f{t*} => type
+              ; <foldr(typestate-call-init(|type), typestate-call-combine, typestate-of)> e* => ts
 
   TypestateVarAssignment :
         Assign(ExprName(Id(var)), e){t*} -> Assign(ExprName(Id(var)), e){TypeState(ts), t*}

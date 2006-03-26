@@ -8,15 +8,24 @@ strategies
     option-wrap(general-options,
       test-suite(!"WK11 assignment",
         observables-wrap(
-          simple-tests
-        ; control-flow-tests
+          init-tests
+        ; null-tests
         )
       )
     )
 
 strategies
 
-  simple-tests = id
+  init-tests =
+    init-simple-tests
+    ; init-control-flow-tests
+
+  null-tests =
+    null-simple-tests
+
+strategies
+
+  init-simple-tests = id
   ; test-compilation-unit(
       ?ExprStm( _{TypeState(UniInit), _*} )
     | "Simple variable"
@@ -52,10 +61,15 @@ strategies
     | "Simple initialized variable"
     , "class Foo { public void foo() { int x, y; x = y; result : x; } }"
     )
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(Init), _*} )
+    | "Simple method parameter"
+    , "class Foo { public void foo(int y) { result : y; } }"
+    )
 
 strategies
 
-  control-flow-tests = id
+  init-control-flow-tests = id
   ; test-compilation-unit(
       ?ExprStm( _{TypeState(UniInit), _*} )
     | "Simple if-then-else statement"
@@ -81,7 +95,73 @@ strategies
     | "Simple if-then-else statement"
     , "class Foo { public void foo() { int x; if (true) x=1; else ; result : x; } }"
     )
+  ; test-compilation-unit(
+      { ?ExprStm( _{TypeState(Init), t*} ) }   /* hack; why does the _* not match
+                                                  here?!?
+                                                  guess there's unscoped variable
+                                                  somewhere... */
+    | "Conditional of if-then-else statement"
+    , "class Foo { public void foo() { boolean x; if (x = true) ; else ; result : x; } }"
+    )
+  ; test-compilation-unit(
+      { ?ExprStm( _{TypeState(Init), t*} ) }
+    | "Conditional of while statement"
+    , "class Foo { public void foo() { boolean x; while (x = true) ; result : x; } }"
+    )
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(Dunno), _*} )
+    | "Simple while statement"
+    , "class Foo { public void foo() { int x; while (true) x = 2; result : x; } }"
+    )
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(Init), _*} )
+    | "Simple while statement"
+    , "class Foo { public void foo() { int x = 3; while (true) x = 2; result : x; } }"
+    )
 
+strategies
+
+  null-simple-tests = id
+  ; test-compilation-unit(
+      { ?ExprStm( _{TypeState(Null), t*} ) }
+    | "Literal null value"
+    , "class Foo { public void foo() { result : null; } }"
+    )
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(Null), _*} )
+    | "Simple null variable"
+    , "class Foo { public void foo() { String x; result : x; } }"
+    )
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(NotNull), _*} )
+    | "Simple object expression"
+    , "class Foo { public void foo() { result : \"hoi\" + \"haai\"; } }"
+    )
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(NotNull), _*} )
+    | "Simple method parameter"
+    , "class Foo { public void foo(String y) { result : y; } }"
+    )
+  ; test-compilation-unit(
+      { ?ExprStm( _{TypeState(NotNull), t*} ) }
+    | "Simple instance"
+    , "class Foo { public void foo() { result : new String(\"\"); } }"
+    )
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(NotNull), _*} )
+    | "Simple not null propagation"
+    , "class Foo { public void foo() { String n; n = \"haai\"; result : n; } }"
+    )
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(Null), _*} )
+    | "Simple null propagation"
+    , "class Foo { public void foo() { String n; n = null; result : n; } }"
+    )
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(Null), _*} )
+    | "Simple null propagation"
+    , "class Foo { public void foo() { String n = \"\"; n = null; result : n; } }"
+    )
 
 /**
  * Testing utils

@@ -10,6 +10,7 @@ strategies
       try(
            TypestateVar
         <+ TypestateLiteral
+        <+ TypestateNewInstance
         <+ OpToCall; TypestateCall; CallToOp
         <+ InvokeToCall; TypestateCall; CallToInvoke
       )

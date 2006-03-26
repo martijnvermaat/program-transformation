@@ -6,29 +6,59 @@ signature
     UnInit    : Property
     Init      : Property
     Dunno     : Property
+    Null      : Property
+    NotNull   : Property
+    MaybeNull : Property
 
 strategies
 
   /**
    * Combining branches in control flow.
    */
-  typestate-combine : (UnInit, UnInit) -> UnInit
-  typestate-combine : (Init, Init)     -> Init
-  typestate-combine : (Init, UnInit)   -> Dunno
-  typestate-combine : (UnInit, Init)   -> Dunno
-  typestate-combine : (Dunno, _)       -> Dunno
-  typestate-combine : (_, Dunno)       -> Dunno
+  typestate-combine : (UnInit, UnInit)   -> UnInit
+  typestate-combine : (Init, Init)       -> Init
+  typestate-combine : (Init, UnInit)     -> Dunno
+  typestate-combine : (UnInit, Init)     -> Dunno
+  typestate-combine : (Dunno, _)         -> Dunno
+  typestate-combine : (_, Dunno)         -> Dunno
+  typestate-combine : (Null, Null)       -> Null
+  typestate-combine : (NotNull, NotNull) -> NotNull
+  typestate-combine : (NotNull, Null)    -> MaybeNull
+  typestate-combine : (Null, NotNull)    -> MaybeNull
+  typestate-combine : (MaybeNull, _)     -> MaybeNull
+  typestate-combine : (_, MaybeNull)     -> MaybeNull
 
   /**
    * Combining call arguments to returned state.
+   * In this configuration uninitialized typestates basically propagate to
+   * the typestate of the invokation.
+   * todo: for null-state this should be more sophisticated, now we just say
+   *       that a method never returns null.
+   *       we could return the left state instead of always NotNull and do
+   *       some figuring out for the particular method in typestate-call-init.
    */
-  typestate-call-combine : (Init, Init)   -> Init
-  typestate-call-combine : (Dunno, Dunno) -> Dunno
-  typestate-call-combine : (Dunno, Init)  -> Dunno
-  typestate-call-combine : (Init, Dunno)  -> Dunno
-  typestate-call-combine : (UnInit, _)    -> UnInit
-  typestate-call-combine : (_, UnInit)    -> UnInit
-  typestate-call-init    = !Init
+  typestate-call-combine : (Init, Init)           -> Init
+  typestate-call-combine : (Dunno, Dunno)         -> Dunno
+  typestate-call-combine : (Dunno, Init)          -> Dunno
+  typestate-call-combine : (Init, Dunno)          -> Dunno
+  typestate-call-combine : (UnInit, _)            -> UnInit
+  typestate-call-combine : (Init, UnInit)         -> UnInit
+  typestate-call-combine : (Dunno, UnInit)        -> UnInit
+  typestate-call-combine : (NotNull, _)           -> NotNull
+  typestate-call-combine : (MaybeNull, _)         -> NotNull
+  typestate-call-combine : (Null, _)              -> NotNull
+  typestate-call-combine : (Init, Null)           -> Init
+  typestate-call-combine : (Init, MaybeNull)      -> Init
+  typestate-call-combine : (Init, NotNull)        -> Init
+  typestate-call-combine : (Dunno, Null)          -> Dunno
+  typestate-call-combine : (Dunno, MaybeNull)     -> Dunno
+  typestate-call-combine : (Dunno, NotNull)       -> Dunno
+  typestate-call-init(|type) =
+    if <?ClassType(_,_)>type <+ <?InterfaceType(_,_)>type then
+      !NotNull
+    else
+      !Init
+    end
 
   /**
    * Propagation of typestate in assignment. Like this:
@@ -42,7 +72,29 @@ strategies
   /**
    * Initial typestate for variable upon declaration.
    */
-  typestate-declaration-init = !UnInit
+  typestate-declaration-init(|type) =
+    if <?ClassType(_,_)>type <+ <?InterfaceType(_,_)>type then
+      !Null
+    else
+      !UnInit
+    end
+
+  /**
+   * Initial typestate for method parameter.
+   * Assumption is that parameters are never null. This is of course not true.
+   */
+  typestate-parameter-init(|type) =
+    if <?ClassType(_,_)>type <+ <?InterfaceType(_,_)>type then
+      !NotNull
+    else
+      !Init
+    end
+
+  /**
+   * A created instance is never null.
+   */
+  typestate-instance-init =
+    !NotNull
 
 strategies
 

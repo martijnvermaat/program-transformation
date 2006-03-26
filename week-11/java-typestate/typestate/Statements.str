@@ -5,19 +5,23 @@ imports
 
 strategies
 
+  /**
+   * todo: define nullness of test methods, returns, throws, checks in
+   *       conditionals, lazy operators
+   * todo: always unlock
+   */
+
   typestate-method-dec =
     {| Typestate :
        MethodDec(typestate-method-head, typestate-method-body)
     |}
 
-  /**
-   * todo: look at other childs of MethodDecHead?
-   */
   typestate-method-head =
     collect(?Param(_, _, _))
     ; map({ var :
-        ?Param(_, _, Id(var))
-        ; rules ( Typestate : var -> Dunno )
+        ?Param(_, type, Id(var))
+        ; where(typestate-parameter-init(|type) => ts)
+        ; rules ( Typestate : var -> ts )
       })
 
   typestate-method-body =
@@ -55,24 +59,25 @@ strategies
    * Analyse typestate in local variable declaration.
    */
   typestate-local-var-dec-stm =
-    LocalVarDecStm(LocalVarDec(id, id, map(typestate-var-dec)))
+    ?LocalVarDecStm(LocalVarDec(_, type, _))
+    ; LocalVarDecStm(LocalVarDec(id, id, map(typestate-var-dec(|type))))
 
   /**
    * Simple declaration.
    */
-  typestate-var-dec =
+  typestate-var-dec(|type) =
     VarDec(Id(?var))
-    ; where(typestate-declaration-init => ts)
+    ; where(typestate-declaration-init(|type) => ts)
     ; rules ( Typestate : var -> ts )
 
   /**
    * Declaration with assignment.
    */
-  typestate-var-dec =
+  typestate-var-dec(|type) =
     VarDec(Id(?var), typestate-exp => e)
     ; where(
         <typestate-assignment-rule>(
-          <typestate-declaration-init>,
+          <typestate-declaration-init(|type)>,
           <typestate-of>e
         ) => ts
       )
@@ -80,6 +85,9 @@ strategies
         Typestate : var -> ts
       )
 
+  /**
+   * todo: consider conditional checks for nullness
+   */
   typestate-if-then-else-stm =
     If(typestate-exp, id, id)
     ; merge-Typestate(
@@ -88,8 +96,6 @@ strategies
       )
 
   /**
-   * todo: make tests for assignment in condition
-   *       (condition is always executed)
    * todo: looping body does matter for null annotations
    */
   typestate-while-stm =
