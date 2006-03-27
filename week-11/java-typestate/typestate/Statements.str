@@ -20,7 +20,8 @@ strategies
     collect(?Param(_, _, _))
     ; map({ var :
         ?Param(_, type, Id(var))
-        ; where(typestate-parameter-init(|type) => ts)
+        ; (where(<ParameterState>var => ts)
+           <+ <debug(!"don't know this method parameter: ")>var)
         ; rules ( Typestate : var -> ts )
       })
 

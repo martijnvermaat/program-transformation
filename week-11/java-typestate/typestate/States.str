@@ -80,17 +80,6 @@ strategies
     end
 
   /**
-   * Initial typestate for method parameter.
-   * Assumption is that parameters are never null. This is of course not true.
-   */
-  typestate-parameter-init(|type) =
-    if <?ClassType(_,_)>type <+ <?InterfaceType(_,_)>type then
-      !NotNull
-    else
-      !Init
-    end
-
-  /**
    * A created instance is never null.
    */
   typestate-instance-init =

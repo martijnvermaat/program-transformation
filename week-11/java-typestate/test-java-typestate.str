@@ -17,11 +17,22 @@ strategies
 strategies
 
   init-tests =
-    init-simple-tests
+    rules (
+        ParameterState : "y_init"      -> Init
+        ParameterState : "y_uninit"    -> UnInit
+        ParameterState : "y_dunno"     -> Dunno
+    )
+    ; init-simple-tests
     ; init-control-flow-tests
 
   null-tests =
-    null-simple-tests
+    rules (
+        ParameterState : "s_null"      -> Null
+        ParameterState : "s_notnull"   -> NotNull
+        ParameterState : "s_maybenull" -> MaybeNull
+    )
+    ; null-simple-tests
+    ; null-control-flow-tests
 
 strategies
 
@@ -64,7 +75,17 @@ strategies
   ; test-compilation-unit(
       ?ExprStm( _{TypeState(Init), _*} )
     | "Simple method parameter"
-    , "class Foo { public void foo(int y) { result : y; } }"
+    , "class Foo { public void foo(int y_init) { result : y_init; } }"
+    )
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(UnInit), _*} )
+    | "Simple method parameter"
+    , "class Foo { public void foo(int y_uninit) { result : y_uninit; } }"
+    )
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(Dunno), _*} )
+    | "Simple method parameter"
+    , "class Foo { public void foo(int y_dunno) { result : y_dunno; } }"
     )
 
 strategies
@@ -98,7 +119,7 @@ strategies
   ; test-compilation-unit(
       { ?ExprStm( _{TypeState(Init), t*} ) }   /* hack; why does the _* not match
                                                   here?!?
-                                                  guess there's unscoped variable
+                                                  guess there's an unscoped variable
                                                   somewhere... */
     | "Conditional of if-then-else statement"
     , "class Foo { public void foo() { boolean x; if (x = true) ; else ; result : x; } }"
@@ -138,11 +159,6 @@ strategies
     , "class Foo { public void foo() { result : \"hoi\" + \"haai\"; } }"
     )
   ; test-compilation-unit(
-      ?ExprStm( _{TypeState(NotNull), _*} )
-    | "Simple method parameter"
-    , "class Foo { public void foo(String y) { result : y; } }"
-    )
-  ; test-compilation-unit(
       { ?ExprStm( _{TypeState(NotNull), t*} ) }
     | "Simple instance"
     , "class Foo { public void foo() { result : new String(\"\"); } }"
@@ -161,6 +177,45 @@ strategies
       ?ExprStm( _{TypeState(Null), _*} )
     | "Simple null propagation"
     , "class Foo { public void foo() { String n = \"\"; n = null; result : n; } }"
+    )
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(Null), _*} )
+    | "Simple method parameter for nullness"
+    , "class Foo { public void foo(String s_null) { result : s_null; } }"
+    )
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(NotNull), _*} )
+    | "Simple method parameter for nullness"
+    , "class Foo { public void foo(String s_notnull) { result : s_notnull; } }"
+    )
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(MaybeNull), _*} )
+    | "Simple method parameter for nullness"
+    , "class Foo { public void foo(String s_maybenull) { result : s_maybenull; } }"
+    )
+
+strategies
+
+  null-control-flow-tests = id
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(NotNull), _*} )
+    | "Simple if-then-else statement with null check"
+    , "class Foo { public void foo(String s_maybenull) { if (s_maybenull != null) result: s_maybenull; else ; } }"
+    )
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(Null), _*} )
+    | "Simple if-then-else statement with null check"
+    , "class Foo { public void foo(String s_maybenull) { if (s_maybenull == null) result: s_maybenull; else ; } }"
+    )
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(MaybeNull), _*} )
+    | "Simple if-then-else statement with null check"
+    , "class Foo { public void foo(String s_maybenull) { if (s_maybenull != null) ; else ; result: s_maybenull; } }"
+    )
+  ; test-compilation-unit(
+      ?ExprStm( _{TypeState(NotNull), _*} )
+    | "Simple if-then-else statement with null check"
+    , "class Foo { public void foo(String s_maybenull) { if (s_maybenull == null) ; else result: s_maybenull; } }"
     )
 
 /**
