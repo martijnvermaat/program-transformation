@@ -6,8 +6,7 @@ imports
 strategies
 
   /**
-   * todo: define nullness of test methods, returns, throws, checks in
-   *       conditionals, lazy operators
+   * todo: returns, throws, (lazy) operators
    * todo: always unlock
    */
 
@@ -88,13 +87,23 @@ strategies
       )
 
   /**
-   * todo: consider conditional checks for nullness
+   * The idea is that effects of conditionals are captured in the
+   * EffectiveTypestate rules which have higher priority than the Typestate
+   * rules in figuring out the typestate of a variable.
+   * One type of rule with scope labels would probably have been more
+   * sensible...
    */
   typestate-if-then-else-stm =
-    If(typestate-exp, id, id)
+    If(typestate-exp => cond, id, id)
     ; merge-Typestate(
-        If(id, typestate-stm, id),
-        If(id, id, typestate-stm)
+        {| EffectiveTypestate :
+                where(<typestate-exp-effects>cond)
+                ; If(id, typestate-stm, id)
+        |},
+        {| EffectiveTypestate :
+                where(<typestate-exp-effects>Not(cond))
+                ; If(id, id, typestate-stm)
+        |}
       )
 
   /**

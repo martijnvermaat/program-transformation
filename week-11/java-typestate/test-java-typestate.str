@@ -33,6 +33,11 @@ strategies
       Environment of parameter typestates.
     */
     rules (
+        ParameterState : "y_init"      -> Init
+        ParameterState : "y_uninit"    -> UnInit
+        ParameterState : "y_dunno"     -> Dunno
+    )
+    ; rules (
         ParameterState : "s_null"      -> Null
         ParameterState : "s_notnull"   -> NotNull
         ParameterState : "s_maybenull" -> MaybeNull
@@ -333,17 +338,17 @@ strategies
   ; test-compilation-unit(
       { ?ExprStm( _{TypeState(NotNull), t*} ) }
     | "Simple method call for nullness"
-    , "class Foo { public String n_notnull(String s_notnull, int y_notnull) { return \"\"; } public void foo() { result : n_notnull(\"\", 5); } }"
+    , "class Foo { public String n_notnull(String s_notnull, int y_init) { return \"\"; } public void foo() { result : n_notnull(\"\", 5); } }"
     )
   ; test-compilation-unit(
       { ?ExprStm( _{TypeState(NotNull), t*} ) }
     | "Simple method call for nullness"
-    , "class Foo { public String n_notnull(String s_notnull, int y_notnull) { return \"\"; } public void foo() { result : n_notnull(null, 5); } }"
+    , "class Foo { public String n_notnull(String s_notnull, int y_init) { return \"\"; } public void foo() { result : n_notnull(null, 5); } }"
     )
   ; test-compilation-unit(
       { ?ExprStm( _{TypeState(Null), t*} ) }
     | "Simple method call for nullness"
-    , "class Foo { public String n_null(String s_notnull, int y_notnull) { return \"\"; } public void foo() { result : n_null(\"\", 5); } }"
+    , "class Foo { public String n_null(String s_notnull, int y_init) { return \"\"; } public void foo() { result : n_null(\"\", 5); } }"
     )
 
 strategies

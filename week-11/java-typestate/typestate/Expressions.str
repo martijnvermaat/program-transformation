@@ -38,3 +38,70 @@ strategies
   typestate-of :
     e{t*} -> ts
     where <fetch-elem(?TypeState(<id>))> t* => ts
+
+strategies
+
+  /**
+   * Consider necessary typestate effects over cases that expression evaluates
+   * to true.
+   * todo: sanitize and de-uglify all code below
+   */
+  typestate-exp-effects =
+    topdown-exp(|True)
+
+  /**
+   * Topdown traversal over expressions.
+   */
+  topdown-exp(|v) =
+       ?Not(_)
+       ; where(<typestate-invert-effects>v => v')
+       ; all(topdown-exp(|v'))
+    <+ (try(
+               typestate-eq-exp-effects(|v)
+            <+ typestate-not-eq-exp-effects(|v)
+            /* todo: operators */
+       ))
+       ; all(topdown-exp(|v))
+
+  /**
+   * Toggle need for expression evaluation.
+   */
+  typestate-invert-effects =
+    if ?True then
+      !False
+    else
+      !True
+    end
+
+  typestate-eq-exp-effects(|v) =
+    where(<?True>v)
+    ; ?Eq(ve@ExprName(Id(var)), e)
+    ; where (<typestate-eq-combine>( <typestate-of>ve,
+                                     <typestate-of>e ) => ts)
+    ; rules ( EffectiveTypestate : var -> ts )
+
+  typestate-eq-exp-effects(|v) =
+    where(<?True>v)
+    ; ?Eq(e, ve@ExprName(Id(var)))
+    ; where (<typestate-eq-combine>( <typestate-of>ve,
+                                     <typestate-of>e ) => ts)
+    ; rules ( EffectiveTypestate : var -> ts )
+
+  typestate-eq-exp-effects(|v) =
+    where(<?False>v)
+    ; ?Eq(ve@ExprName(Id(var)), e)
+    ; where (<typestate-neq-combine>( <typestate-of>ve,
+                                     <typestate-of>e ) => ts)
+    ; rules ( EffectiveTypestate : var -> ts )
+
+  typestate-eq-exp-effects(|v) =
+    where(<?False>v)
+    ; ?Eq(e, ve@ExprName(Id(var)))
+    ; where (<typestate-neq-combine>( <typestate-of>ve,
+                                     <typestate-of>e ) => ts)
+    ; rules ( EffectiveTypestate : var -> ts )
+
+  typestate-not-eq-exp-effects(|v) =
+    ?NotEq(ve@ExprName(Id(_)), e)
+    ; where(<typestate-invert-effects>v => v')
+    ; where(<typestate-eq-exp-effects(|v')>Eq(ve, e))

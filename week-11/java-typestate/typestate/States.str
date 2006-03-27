@@ -96,6 +96,15 @@ strategies
   typestate-instance-init =
     !NotNull
 
+  /**
+   * Combining typestates in an equality check propagates the typestate of the
+   * expression to a MaybeNull variable. Other equality checks have no effect.
+   * An inequality check works the same way.
+   */
+  typestate-eq-combine  : (MaybeNull, s)       -> s
+  typestate-neq-combine : (MaybeNull, Null)    -> NotNull
+  typestate-neq-combine : (MaybeNull, NotNull) -> Null
+
 strategies
 
   merge-Typestate(s1, s2) =
