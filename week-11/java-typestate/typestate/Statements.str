@@ -36,6 +36,7 @@ strategies
     <+ typestate-if-then-else-stm
     <+ typestate-while-stm
     <+ typestate-labeled-stm
+    <+ typestate-return-stm
     <+ debug(!"unsupported statement: ")
 
   /**
@@ -108,3 +109,9 @@ strategies
    */
   typestate-labeled-stm =
     Labeled(id, typestate-stm)
+
+  /**
+   * Return statement.
+   */
+  typestate-return-stm =
+    Return(typestate-exp)

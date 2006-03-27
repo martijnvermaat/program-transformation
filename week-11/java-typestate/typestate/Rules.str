@@ -4,6 +4,13 @@ imports
 
 signature
   constructors
+    /*
+      We add a Call(e, e* ) -> e' construct that we use to handle method
+      invokations and operators in a generic way.
+      The expression is the literal invokation or operator call, to restor to
+      later. The list of expressions is the list of parameters.
+      Yes this is a hack, but it sort of works.
+    */
     Call : Expr * List(Expr) -> Expr
 
 rules
@@ -29,7 +36,11 @@ rules
   TypestateCall :
         Call(f{t*}, e*) -> Call(f{TypeState(ts), t*}, e*)
         where <type-attr> f{t*} => type
-              ; <foldr(typestate-call-init(|type), typestate-call-combine, typestate-of)> e* => ts
+              ; if <compile-time-declaration-attr> f{t*} => caller then
+                  <foldr(typestate-call-init(|type, caller), typestate-call-combine, typestate-of)> e* => ts
+                else
+                  <foldr(typestate-call-init(|type), typestate-call-combine, typestate-of)> e* => ts
+                end
 
   TypestateVarAssignment :
         Assign(ExprName(Id(var)), e){t*} -> Assign(ExprName(Id(var)), e){TypeState(ts), t*}

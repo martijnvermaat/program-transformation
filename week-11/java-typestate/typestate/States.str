@@ -32,30 +32,41 @@ strategies
    * Combining call arguments to returned state.
    * In this configuration uninitialized typestates basically propagate to
    * the typestate of the invokation.
-   * todo: for null-state this should be more sophisticated, now we just say
-   *       that a method never returns null.
-   *       we could return the left state instead of always NotNull and do
-   *       some figuring out for the particular method in typestate-call-init.
+   * The nullness of the seed (typestate-call-init) is preserved if this
+   * affects a object type call (right-hand side in fold-right).
    */
   typestate-call-combine : (Init, Init)           -> Init
   typestate-call-combine : (Dunno, Dunno)         -> Dunno
   typestate-call-combine : (Dunno, Init)          -> Dunno
   typestate-call-combine : (Init, Dunno)          -> Dunno
-  typestate-call-combine : (UnInit, _)            -> UnInit
-  typestate-call-combine : (Init, UnInit)         -> UnInit
-  typestate-call-combine : (Dunno, UnInit)        -> UnInit
-  typestate-call-combine : (NotNull, _)           -> NotNull
-  typestate-call-combine : (MaybeNull, _)         -> NotNull
-  typestate-call-combine : (Null, _)              -> NotNull
-  typestate-call-combine : (Init, Null)           -> Init
-  typestate-call-combine : (Init, MaybeNull)      -> Init
-  typestate-call-combine : (Init, NotNull)        -> Init
-  typestate-call-combine : (Dunno, Null)          -> Dunno
-  typestate-call-combine : (Dunno, MaybeNull)     -> Dunno
-  typestate-call-combine : (Dunno, NotNull)       -> Dunno
+  typestate-call-combine : (_, UnInit)            -> UnInit
+  typestate-call-combine : (UnInit, Init)         -> UnInit
+  typestate-call-combine : (UnInit, Dunno)        -> UnInit
+  typestate-call-combine : (_, NotNull)           -> NotNull
+  typestate-call-combine : (_, MaybeNull)         -> MaybeNull
+  typestate-call-combine : (_, Null)              -> Null
+  typestate-call-combine : (Null, Init)           -> Init
+  typestate-call-combine : (MaybeNull, Init)      -> Init
+  typestate-call-combine : (NotNull, Init)        -> Init
+  typestate-call-combine : (Null, Dunno)          -> Dunno
+  typestate-call-combine : (MaybeNull, Dunno)     -> Dunno
+  typestate-call-combine : (NotNull, Dunno)       -> Dunno
+
+  /**
+   * Default typestate for invokations is Init and for object types we try to
+   * get a typestate from the environment using the caller signature.
+   */
   typestate-call-init(|type) =
+    typestate-call-init(|type, ())
+
+  typestate-call-init(|type, caller) =
     if <?ClassType(_,_)>type <+ <?InterfaceType(_,_)>type then
-      !NotNull
+      if <MethodState>caller => ts then
+        !ts
+      else
+        /* this case handles things like String concatenation, etc */
+        !NotNull
+      end
     else
       !Init
     end

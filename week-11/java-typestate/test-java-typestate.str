@@ -17,6 +17,9 @@ strategies
 strategies
 
   init-tests =
+    /*
+      Environment of parameter typestates.
+    */
     rules (
         ParameterState : "y_init"      -> Init
         ParameterState : "y_uninit"    -> UnInit
@@ -26,10 +29,114 @@ strategies
     ; init-control-flow-tests
 
   null-tests =
+    /*
+      Environment of parameter typestates.
+    */
     rules (
         ParameterState : "s_null"      -> Null
         ParameterState : "s_notnull"   -> NotNull
         ParameterState : "s_maybenull" -> MaybeNull
+    )
+    /*
+      Environment of method return typestates.
+    */
+    ; rules (
+        MethodState : MethodName(
+                          TypeName(PackageName([]), Id("Foo"))
+                        , Id("m_null")
+                        , []
+                        , ClassType(
+                            TypeName(
+                              PackageName([Id("java"), Id("lang")])
+                            , Id("String")
+                            )
+                          , None
+                          )
+                        ) -> Null
+        MethodState : MethodName(
+                          TypeName(PackageName([]), Id("Foo"))
+                        , Id("m_notnull")
+                        , []
+                        , ClassType(
+                            TypeName(
+                              PackageName([Id("java"), Id("lang")])
+                            , Id("String")
+                            )
+                          , None
+                          )
+                        ) -> NotNull
+        MethodState : MethodName(
+                          TypeName(PackageName([]), Id("Foo"))
+                        , Id("m_maybenull")
+                        , []
+                        , ClassType(
+                            TypeName(
+                              PackageName([Id("java"), Id("lang")])
+                            , Id("String")
+                            )
+                          , None
+                          )
+                        ) -> MaybeNull
+        MethodState : MethodName(
+                          TypeName(PackageName([]), Id("Foo"))
+                        , Id("n_null")
+                        , [ ClassType(
+                              TypeName(
+                                PackageName([Id("java"), Id("lang")])
+                              , Id("String")
+                              )
+                            , None
+                            )
+                          , Int
+                          ]
+                        , ClassType(
+                            TypeName(
+                              PackageName([Id("java"), Id("lang")])
+                            , Id("String")
+                            )
+                          , None
+                          )
+                        ) -> Null
+        MethodState : MethodName(
+                          TypeName(PackageName([]), Id("Foo"))
+                        , Id("n_notnull")
+                        , [ ClassType(
+                              TypeName(
+                                PackageName([Id("java"), Id("lang")])
+                              , Id("String")
+                              )
+                            , None
+                            )
+                          , Int
+                          ]
+                        , ClassType(
+                            TypeName(
+                              PackageName([Id("java"), Id("lang")])
+                            , Id("String")
+                            )
+                          , None
+                          )
+                        ) -> NotNull
+        MethodState : MethodName(
+                          TypeName(PackageName([]), Id("Foo"))
+                        , Id("n_maybenull")
+                        , [ ClassType(
+                              TypeName(
+                                PackageName([Id("java"), Id("lang")])
+                              , Id("String")
+                              )
+                            , None
+                            )
+                          , Int
+                          ]
+                        , ClassType(
+                            TypeName(
+                              PackageName([Id("java"), Id("lang")])
+                            , Id("String")
+                            )
+                          , None
+                          )
+                        ) -> MaybeNull
     )
     ; null-simple-tests
     ; null-control-flow-tests
@@ -86,6 +193,21 @@ strategies
       ?ExprStm( _{TypeState(Dunno), _*} )
     | "Simple method parameter"
     , "class Foo { public void foo(int y_dunno) { result : y_dunno; } }"
+    )
+  ; test-compilation-unit(
+      { ?ExprStm( _{TypeState(Init), t*} ) }
+    | "Simple method call"
+    , "class Foo { public void foo() { result : System.out.println(); } }"
+    )
+  ; test-compilation-unit(
+      { ?ExprStm( _{TypeState(Init), t*} ) }
+    | "Simple method call with parameter"
+    , "class Foo { public void foo() { result : System.out.println(\"\"); } }"
+    )
+  ; test-compilation-unit(
+      { ?ExprStm( _{TypeState(UnInit), t*} ) }
+    | "Simple method call with uninitialized parameter"
+    , "class Foo { public void foo() { int y; result : System.out.println(y); } }"
     )
 
 strategies
@@ -192,6 +314,36 @@ strategies
       ?ExprStm( _{TypeState(MaybeNull), _*} )
     | "Simple method parameter for nullness"
     , "class Foo { public void foo(String s_maybenull) { result : s_maybenull; } }"
+    )
+  ; test-compilation-unit(
+      { ?ExprStm( _{TypeState(Null), t*} ) }
+    | "Simple method call for nullness"
+    , "class Foo { public String m_null() { return \"\"; } public void foo() { result : m_null(); } }"
+    )
+  ; test-compilation-unit(
+      { ?ExprStm( _{TypeState(NotNull), t*} ) }
+    | "Simple method call for nullness"
+    , "class Foo { public String m_notnull() { return \"\"; } public void foo() { result : m_notnull(); } }"
+    )
+  ; test-compilation-unit(
+      { ?ExprStm( _{TypeState(MaybeNull), t*} ) }
+    | "Simple method call for nullness"
+    , "class Foo { public String m_maybenull() { return \"\"; } public void foo() { result : m_maybenull(); } }"
+    )
+  ; test-compilation-unit(
+      { ?ExprStm( _{TypeState(NotNull), t*} ) }
+    | "Simple method call for nullness"
+    , "class Foo { public String n_notnull(String s_notnull, int y_notnull) { return \"\"; } public void foo() { result : n_notnull(\"\", 5); } }"
+    )
+  ; test-compilation-unit(
+      { ?ExprStm( _{TypeState(NotNull), t*} ) }
+    | "Simple method call for nullness"
+    , "class Foo { public String n_notnull(String s_notnull, int y_notnull) { return \"\"; } public void foo() { result : n_notnull(null, 5); } }"
+    )
+  ; test-compilation-unit(
+      { ?ExprStm( _{TypeState(Null), t*} ) }
+    | "Simple method call for nullness"
+    , "class Foo { public String n_null(String s_notnull, int y_notnull) { return \"\"; } public void foo() { result : n_null(\"\", 5); } }"
     )
 
 strategies
