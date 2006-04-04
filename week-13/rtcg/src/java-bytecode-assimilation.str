@@ -1,0 +1,76 @@
+module java-bytecode-assimilation
+imports libdryad Java-15-in-Java-15 Java-EBlock 
+
+strategies
+
+  main = 
+    init-observables
+    ; xtc-multi-io-wrap(
+        observables-wrap(
+          map(read-from)
+          ; map(define-compilation-unit)
+          ; dryad-reclassify
+          ; map(get-ast)
+          ; alltd(assimilate-in-method)
+        )
+      )
+
+  init-observables =
+    where(
+      <set-config> (ObservableClasses(), [
+        <xtc-find> "rt.classes", 
+        "../gnu-bytecode/kawa-1.8.jar"
+      ])
+    )
+
+rules 
+
+  // find quoted code fragments in methods
+
+  assimilate-in-method :
+    MethodDec(head1, block1) -> MethodDec(head2, block2)
+    where {| LocalVar
+           : <alltd(declare-meta-param)> head1 => head2
+           ; <alltd(assimilate-quotes)> block1 => block2
+           |} 
+
+  // declare parameters marked as meta-var; 
+  // use dynamic rule to propagate to uses of variables
+
+  declare-meta-param :
+    Param([], t, MetaVar(Id(x))) -> Param([], t, var)
+    where <newjavaid> "var" => var
+   ; rules( LocalVar : x -> var )
+
+  // assimilated quote fragments
+
+  assimilate-quotes =
+    assimilate-quote-block-stms
+    <+ assimilate-quoted-class
+    <+ assimilate-meta-var
+
+  // a class fragment is an expression that produces a ClassType
+ 
+  assimilate-quoted-class :
+    QuoteClassDec(cdec) ->
+    expr|[ {| ClassType thisClass; ~bstm*:<assimilate-class> cdec | thisClass |} ]|  
+  
+  assimilate-quote-block-stms :
+   QuoteBlockStms(stms) -> Block(<mapconcat(assimilate-block-statement)>stms)
+
+  assimilate-meta-var :
+    MetaVar(Id(x)) -> var
+    where <LocalVar> x => var
+
+  assimilate-block-statement =
+    fail
+
+  assimilate-class =
+    fail
+
+strategies // utils
+
+  // Create a new Java identifier given a string.
+
+  newjavaid = 
+    !Id(<newname>)

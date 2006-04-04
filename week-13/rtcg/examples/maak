@@ -1,0 +1,121 @@
+#! /bin/sh -e
+
+JARS=../gnu-bytecode/kawa-1.8.jar:${HOME}/.nix-profile/share/java/bcel-5.1.jar:.
+
+
+echo "compiling RTCG4Generated.java"
+javac -cp $JARS RTCG4Generated.java
+echo "running  RTCG4Generated"
+java -cp $JARS RTCG4Generated 1024
+
+exit
+
+echo "compiling RTCG4.java"
+javac -cp $JARS RTCG4.java
+echo "running  RTCG4"
+java -cp $JARS RTCG4 1024
+
+echo "###########################################################"
+
+echo "compiling RTCG4Stylized.java"
+javac -cp $JARS RTCG4Stylized.java
+echo "running  RTCG4Stylized"
+java -cp $JARS RTCG4Stylized 1024
+
+echo "###########################################################"
+
+exit
+
+echo "###########################################################"
+
+echo "compiling RTCG2.java"
+javac -cp $JARS RTCG2.java
+echo "running  RTCG2"
+java -cp $JARS RTCG2
+
+echo "###########################################################"
+
+echo "compiling RTCG2B.java"
+javac -cp $JARS RTCG2B.java
+echo "running  RTCG2B"
+java -cp $JARS RTCG2B
+
+echo "###########################################################"
+
+echo "compiling RTCG3.java"
+javac -cp $JARS RTCG3.java
+echo "running  RTCG3"
+java -cp $JARS RTCG3 256
+
+echo "###########################################################"
+
+echo "compiling RTCG4.java"
+javac -cp $JARS RTCG4.java
+echo "running  RTCG4"
+java -cp $JARS RTCG4 1024
+
+echo "###########################################################"
+
+echo "compiling RTCG4B.java"
+javac -cp $JARS RTCG4B.java
+echo "running  RTCG4B"
+java -cp $JARS RTCG4B 1024
+
+echo "###########################################################"
+
+echo "compiling RTCG7.java"
+javac -cp $JARS RTCG7.java
+echo "running  RTCG7"
+java -cp $JARS RTCG7 1100 2500
+
+echo "###########################################################"
+
+echo "compiling RTCG7B.java"
+javac -cp $JARS RTCG7B.java
+echo "running  RTCG7B"
+java -cp $JARS RTCG7B 1100 2500
+
+echo "###########################################################"
+
+echo "compiling RTCG8.java"
+javac -cp $JARS RTCG8.java
+echo "running  RTCG8"
+java -cp $JARS RTCG8 30 40 50 60 75
+
+exit
+
+echo "###########################################################"
+
+echo "compiling TryDelegate3.java"
+javac -cp $JARS TryDelegate3.java
+echo "running  TryDelegate3"
+java -cp $JARS TryDelegate3
+
+echo "###########################################################"
+
+echo "compiling TryDelegate4.java"
+javac -cp $JARS TryDelegate4.java
+echo "running  TryDelegate4"
+java -cp $JARS TryDelegate4
+
+echo "###########################################################"
+
+echo "compiling Delegate.java"
+javac -cp $JARS Delegate.java
+echo "running  Delegate"
+java -cp $JARS Delegate
+
+
+exit
+
+FILES="RTCG3.java RTCG7B.java TryDelegate3.java \
+	RTCG2B.java RTCG4B.java RTCG7.java TryDelegate4.java \
+	RTCG2.java RTCG4.java RTCG8.java Delegate.java"
+
+for file in $FILES
+do
+  echo "compiling $file"
+  javac -cp $JARS $file
+  echo "running $file"
+  java -cp $JARS $(basename $file .java)
+done

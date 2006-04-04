@@ -1,0 +1,15 @@
+module Java-15-in-Java-15
+imports
+  Java-15 Java-15-Prefixed
+
+exports
+  context-free start-symbols CompilationUnit
+
+  context-free syntax
+    "genclass" "|[" JavaClassDec "]|" -> Expr {cons("QuoteClassDec")}
+
+    "genbstms" "|[" JavaBlockStm* "]|" ";" -> Stm {cons("QuoteBlockStms")}
+
+    "#genbstms" "|[" BlockStm* "]|" ";" -> JavaStm {cons("EscapeFromStm")}
+ 
+    "#var[" JavaId "]" -> Id {cons("MetaVar")}
