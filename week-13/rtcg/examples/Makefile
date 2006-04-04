@@ -4,7 +4,7 @@ javainjava = ../embedding/Java-15-in-Java-15.tbl
 
 # parse Java file with parse table for embedding
 %.ajava : %.java
-	sglri -p $(javainjava) -i $< | pp-aterm -o $@
+	sglri -s CompilationUnit -p $(javainjava) -i $< | pp-aterm -o $@
 
 # assimilate embedded Java code to bytecode API calls
 %.assim.ajava : %.ajava ../src/java-bytecode-assimilation

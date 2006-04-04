@@ -40,7 +40,7 @@ rules
   declare-meta-param :
     Param([], t, MetaVar(Id(x))) -> Param([], t, var)
     where <newjavaid> "var" => var
-   ; rules( LocalVar : x -> var )
+          ; rules( LocalVar : x -> var )
 
   // assimilated quote fragments
 
