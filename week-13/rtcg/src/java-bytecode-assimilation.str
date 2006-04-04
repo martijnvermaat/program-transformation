@@ -53,8 +53,8 @@ rules
  
   assimilate-quoted-class :
     QuoteClassDec(cdec) ->
-    expr|[ {| ClassType thisClass; ~bstm*:<assimilate-class> cdec | thisClass |} ]|  
-  
+    expr|[ {| ClassType thisClass; ~bstm*:<assimilate-class> cdec | thisClass |} ]|
+
   assimilate-quote-block-stms :
    QuoteBlockStms(stms) -> Block(<mapconcat(assimilate-block-statement)>stms)
 
@@ -72,5 +72,5 @@ strategies // utils
 
   // Create a new Java identifier given a string.
 
-  newjavaid = 
+  newjavaid =
     !Id(<newname>)
