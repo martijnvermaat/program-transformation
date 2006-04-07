@@ -2,6 +2,8 @@ module assimilate-java/test
 imports
   libstrategolib
   Java-EBlock
+  libdryad
+  assimilate-java/Classes
   assimilate-java/Statements
   assimilate-java/Expressions
 
@@ -11,6 +13,7 @@ strategies
     test-suite(!"assimilate-java-test",
         test-expressions
       ; test-statements
+      ; test-classdecs
     )
 
   test-expressions = id
@@ -70,3 +73,43 @@ strategies
       !bstm |[ { ; ; ; ; } ]|,
       ![]
     )
+
+  test-classdecs = id
+
+    ; test-classdec(|"Simple class declaration"
+      , type-dec |[ class Test2 { void m() { } } ]|
+      , ["Test2"]
+      )
+
+strategies
+
+  test-classdec(check |msg, src) =
+    apply-and-check(!msg
+    , assimilate-classdec
+    , <process-input> [CompilationUnit(None, [], [src])]
+      ; collect(?ClassDec(_, _))
+      ; ?[<id>]
+    , check
+    )
+
+  test-classdec(|msg, src, result) =
+    apply-test(!msg
+    , assimilate-classdec
+    , <process-input> [CompilationUnit(None, [], [src])]
+      ; collect(?ClassDec(_, _))
+      ; ?[<id>]
+    , !result
+    )
+
+  process-input =
+/*
+    print-to
+    ; ![<id>]
+    ; parse-java
+    ;
+*/
+    map(define-compilation-unit)
+    ; dryad-reclassify
+    ; map(dryad-type-checker) 
+    ; last
+    ; get-ast
