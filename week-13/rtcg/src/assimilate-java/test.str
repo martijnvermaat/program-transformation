@@ -1,7 +1,6 @@
 module assimilate-java/test
 imports
   libstrategolib
-  Java-EBlock
   libdryad
   assimilate-java/Classes
   assimilate-java/Statements
@@ -19,38 +18,38 @@ strategies
   test-expressions = id
 
     ; apply-test(!"Simple literal",
-      assimilate-exp,
+      assimilate,
       !e |[ 1 ]|,
       !bstm* |[ thisCode.emitPushInt(1); ]|
     )
     ; apply-test(!"Simple literal",
-      assimilate-exp,
+      assimilate,
       !e |[ 3 ]|,
       !bstm* |[ thisCode.emitPushInt(3); ]|
     )
     ; apply-test(!"Simple literal addition",
-      assimilate-exp,
+      assimilate,
       !e |[ 4 + 7 ]|,
       !bstm* |[ thisCode.emitPushInt(4);
                 thisCode.emitPushInt(7);
                 thisCode.emitAdd(); ]|
     )
     ; apply-test(!"Simple literal multiplication",
-      assimilate-exp,
+      assimilate,
       !e |[ 7 * 2 ]|,
       !bstm* |[ thisCode.emitPushInt(7);
                 thisCode.emitPushInt(2);
                 thisCode.emitMul(); ]|
     )
     ; apply-test(!"Simple literal division",
-      assimilate-exp,
+      assimilate,
       !e |[ 12 / 9 ]|,
       !bstm* |[ thisCode.emitPushInt(12);
                 thisCode.emitPushInt(9);
                 thisCode.emitDiv(); ]|
     )
     ; apply-test(!"Complex arithmetic with literals",
-      assimilate-exp,
+      assimilate,
       !e |[ (4 + 12 / 2) - 5 ]|,
       !bstm* |[ thisCode.emitPushInt(4);
                 thisCode.emitPushInt(12);
@@ -64,12 +63,12 @@ strategies
   test-statements = id
 
     ; apply-test(!"Empty statement",
-      assimilate-stm,
+      assimilate,
       !bstm |[ ; ]|,
       ![]
     )
     ; apply-test(!"Block of empty statements",
-      assimilate-stm,
+      assimilate,
       !bstm |[ { ; ; ; ; } ]|,
       ![]
     )
@@ -77,15 +76,20 @@ strategies
   test-classdecs = id
 
     ; test-classdec(|"Simple class declaration"
-      , type-dec |[ class Test2 { void m() { } } ]|
+      , type-dec |[ class Test2 { void m() { System.out.println(); } } ]|
       , ["Test2"]
       )
 
 strategies
 
+  assimilate =
+    Assimilate(assimilate)
+
+strategies
+
   test-classdec(check |msg, src) =
     apply-and-check(!msg
-    , assimilate-classdec
+    , assimilate
     , <process-input> [CompilationUnit(None, [], [src])]
       ; collect(?ClassDec(_, _))
       ; ?[<id>]
@@ -94,7 +98,7 @@ strategies
 
   test-classdec(|msg, src, result) =
     apply-test(!msg
-    , assimilate-classdec
+    , assimilate
     , <process-input> [CompilationUnit(None, [], [src])]
       ; collect(?ClassDec(_, _))
       ; ?[<id>]
@@ -102,12 +106,6 @@ strategies
     )
 
   process-input =
-/*
-    print-to
-    ; ![<id>]
-    ; parse-java
-    ;
-*/
     map(define-compilation-unit)
     ; dryad-reclassify
     ; map(dryad-type-checker) 

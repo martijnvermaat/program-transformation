@@ -1,16 +1,10 @@
 module assimilate-java/Classes
 imports
   Java-EBlock
-  assimilate-java/Rules
 
 strategies
 
-/*
-todo: use one rewrite rule with strategy parameter, like in:
-https://svn.cs.uu.nl:12443/repos/StrategoXT/java-java/trunk/assimilate/java-java/assimilate/expressions/BinaryOperators.str
-*/
-
-  assimilate-classdec =
+  Assimilate(s) =
       ?ClassDec(
         ClassDecHead(_, Id(class-name), _, _, _)
       , ClassBody(_)

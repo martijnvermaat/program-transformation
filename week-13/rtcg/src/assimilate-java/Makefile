@@ -9,8 +9,6 @@ DRYAD = $(HOME)/.nix-profile
 XTCFLAGS = `pkg-config --variable=strcxtcflags dryad`
 STRCFLAGS = `pkg-config --variable=strcflags dryad`
 
-# assume that syntax definition is in ../embedding
-
 STRINCLUDES = \
    -I ../ \
    -I $(JAVAFRONT)/share/sdf/java-front/ \
@@ -22,4 +20,5 @@ STRRUNLIBS = -la stratego-lib
 all: test
 
 test : test.str Makefile
-	strc -i $< $(STRINCLUDES) $(STRCFLAGS) $(STRRUNLIBS) $(XTCFLAGS)
+	strc -i $< $(STRINCLUDES) $(STRCFLAGS) $(STRRUNLIBS) $(XTCFLAGS) --format-check -1
+

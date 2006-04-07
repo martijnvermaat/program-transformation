@@ -1,23 +1,14 @@
 module assimilate-java/Statements
 imports
   Java-EBlock
-  assimilate-java/Rules
 
 strategies
 
-  assimilate-stm =
-       assimilate-block-stm
-    <+ AssimilateStm
-/*
-    <+ AssimilateVar
-    <+ EvalStaticField
-    <+ EvalBinOp
-    <+ EvalCond
-*/
-    <+ debug(!"-- Cannot assimilate statement: ")
-       ; fail
-
-  assimilate-block-stm =
+  Assimilate(s) =
     ?Block(<id>)
-    ; map(assimilate-stm)
-    ; concat
+    ; mapconcat(s)
+
+rules
+
+  Assimilate(s) :
+    Empty -> []
