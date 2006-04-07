@@ -17,9 +17,17 @@ STRINCLUDES = \
    -I $(JAVAFRONT)/share/java-front/ \
    -I $(DRYAD)/share/dryad
 
+TESTINCLUDES = \
+   -I $(JAVAFRONT)/share/sdf/java-front/ \
+   -I $(JAVAFRONT)/share/java-front/ \
+   -I $(DRYAD)/share/dryad
+
 STRRUNLIBS = -la stratego-lib 
 
-all: java-bytecode-assimilation
+all: java-bytecode-assimilation test-assimilate-java
 
 java-bytecode-assimilation : java-bytecode-assimilation.str Makefile
 	strc -i $< $(STRINCLUDES) $(STRCFLAGS) $(STRRUNLIBS) $(XTCFLAGS)
+
+test-assimilate-java : test-assimilate-java.str Makefile
+	strc -i $< $(TESTINCLUDES) $(STRCFLAGS) $(STRRUNLIBS) $(XTCFLAGS)
