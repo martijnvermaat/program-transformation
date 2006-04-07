@@ -12,14 +12,13 @@ STRCFLAGS = `pkg-config --variable=strcflags dryad`
 # assume that syntax definition is in ../embedding
 
 STRINCLUDES = \
-   -I ../embedding \
    -I $(JAVAFRONT)/share/sdf/java-front/ \
    -I $(JAVAFRONT)/share/java-front/ \
    -I $(DRYAD)/share/dryad
 
 STRRUNLIBS = -la stratego-lib 
 
-all: java-bytecode-assimilation
+all: test
 
-java-bytecode-assimilation : java-bytecode-assimilation.str Makefile
+test : test.str Makefile
 	strc -i $< $(STRINCLUDES) $(STRCFLAGS) $(STRRUNLIBS) $(XTCFLAGS)

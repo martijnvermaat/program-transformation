@@ -1,4 +1,4 @@
-module test-assimilate-java
+module test
 imports
   libstrategolib
   Java-15
