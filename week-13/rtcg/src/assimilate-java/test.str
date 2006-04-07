@@ -1,20 +1,72 @@
-module test
+module assimilate-java/test
 imports
   libstrategolib
-  Java-15
-/*  assimilate-java/Expressions*/
+  Java-EBlock
+  assimilate-java/Statements
+  assimilate-java/Expressions
 
 strategies
 
   main =
     test-suite(!"assimilate-java-test",
-        assimilate-java-test
+        test-expressions
+      ; test-statements
     )
 
-  assimilate-java-test =
+  test-expressions = id
 
-    apply-test(!"Simple test",
-      id,
+    ; apply-test(!"Simple literal",
+      assimilate-exp,
       !e |[ 1 ]|,
-      !e |[ 1 ]|
+      !bstm* |[ thisCode.emitPushInt(1); ]|
+    )
+    ; apply-test(!"Simple literal",
+      assimilate-exp,
+      !e |[ 3 ]|,
+      !bstm* |[ thisCode.emitPushInt(3); ]|
+    )
+    ; apply-test(!"Simple literal addition",
+      assimilate-exp,
+      !e |[ 4 + 7 ]|,
+      !bstm* |[ thisCode.emitPushInt(4);
+                thisCode.emitPushInt(7);
+                thisCode.emitAdd(); ]|
+    )
+    ; apply-test(!"Simple literal multiplication",
+      assimilate-exp,
+      !e |[ 7 * 2 ]|,
+      !bstm* |[ thisCode.emitPushInt(7);
+                thisCode.emitPushInt(2);
+                thisCode.emitMul(); ]|
+    )
+    ; apply-test(!"Simple literal division",
+      assimilate-exp,
+      !e |[ 12 / 9 ]|,
+      !bstm* |[ thisCode.emitPushInt(12);
+                thisCode.emitPushInt(9);
+                thisCode.emitDiv(); ]|
+    )
+    ; apply-test(!"Complex arithmetic with literals",
+      assimilate-exp,
+      !e |[ (4 + 12 / 2) - 5 ]|,
+      !bstm* |[ thisCode.emitPushInt(4);
+                thisCode.emitPushInt(12);
+                thisCode.emitPushInt(2);
+                thisCode.emitDiv();
+                thisCode.emitAdd();
+                thisCode.emitPushInt(5);
+                thisCode.emitSub(); ]|
+    )
+
+  test-statements = id
+
+    ; apply-test(!"Empty statement",
+      assimilate-stm,
+      !bstm |[ ; ]|,
+      ![]
+    )
+    ; apply-test(!"Block of empty statements",
+      assimilate-stm,
+      !bstm |[ { ; ; ; ; } ]|,
+      ![]
     )

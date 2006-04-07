@@ -12,6 +12,7 @@ STRCFLAGS = `pkg-config --variable=strcflags dryad`
 # assume that syntax definition is in ../embedding
 
 STRINCLUDES = \
+   -I ../ \
    -I $(JAVAFRONT)/share/sdf/java-front/ \
    -I $(JAVAFRONT)/share/java-front/ \
    -I $(DRYAD)/share/dryad
