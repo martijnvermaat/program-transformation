@@ -2,11 +2,21 @@ module assimilate-java/Classes
 imports
   Java-EBlock
 
-strategies
+rules
 
   Assimilate(s) =
-      ?ClassDec(
-        ClassDecHead(_, Id(class-name), _, _, _)
-      , ClassBody(_)
-      )
-    ; ![class-name]
+    ?ClassDec(head, body)
+    ; <mapconcat(s)>[head, body]
+
+  Assimilate(s) :
+    ClassDecHead(mods, name, type-params, super, interfaces)
+    ->
+    bstm* |[
+      ClassType thisClass;
+      thisClass = new ClassType(~name);
+      thisClass.setSuper("java.lang.Object");
+      thisClass.setModifiers(Access.PUBLIC);
+    ]|
+
+  Assimilate(s) :
+    ClassBody(decs) -> []

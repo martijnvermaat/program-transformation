@@ -79,9 +79,17 @@ strategies
 
   test-classdecs = id
 
+    ; test-classdec(
+        debug(!">>> ")
+      | "Simple class declaration"
+      , type-dec |[ class Test1 { } ]|
+      )
     ; test-classdec(|"Simple class declaration"
-      , type-dec |[ class Test2 { void m() { System.out.println(); } } ]|
-      , ["Test2"]
+      , type-dec |[ class Test2 { } ]|
+      , bstm* |[ ClassType thisClass;
+                 thisClass = new ClassType("Test2");
+                 thisClass.setSuper("java.lang.Object");
+                 thisClass.setModifiers(Access.PUBLIC); ]|
       )
 
 strategies
