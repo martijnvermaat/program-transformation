@@ -9,10 +9,14 @@ imports
 strategies
 
   main =
-    test-suite(!"assimilate-java-test",
-        test-expressions
-      ; test-statements
-      ; test-classdecs
+    option-wrap(general-options,
+      test-suite(!"assimilate-java-test",
+        observables-wrap(
+            test-expressions
+          ; test-statements
+          ; test-classdecs
+        )
+      )
     )
 
   test-expressions = id
