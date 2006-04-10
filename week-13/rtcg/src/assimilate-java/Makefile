@@ -19,6 +19,6 @@ STRRUNLIBS = -la stratego-lib
 
 all: test
 
-test : test.str Makefile
+test : test.str Classes.str Statements.str Expressions.str Makefile
 	strc -i $< $(STRINCLUDES) $(STRCFLAGS) $(STRRUNLIBS) $(XTCFLAGS) --format-check -1
 

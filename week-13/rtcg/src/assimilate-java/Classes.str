@@ -2,21 +2,60 @@ module assimilate-java/Classes
 imports
   Java-EBlock
 
+/**
+ * todo: Generated statements in concrete syntax are often ambiguous (in the
+ * qualification part), but we ignore this. Pretty printing will 'just' fix
+ * it, but a better solution would be to define some often-used qualifications
+ * toplevel using abstract syntax. The test suite would also have to be fixed,
+ * because it also contains these ambiguities.
+ */
+
 rules
 
   Assimilate(s) =
     ?ClassDec(head, body)
     ; <mapconcat(s)>[head, body]
 
+  /**
+   * todo: Annotations are ignored.
+   */
   Assimilate(s) :
     ClassDecHead(mods, name, type-params, super, interfaces)
-    ->
-    bstm* |[
-      ClassType thisClass;
-      thisClass = new ClassType(~name);
-      thisClass.setSuper("java.lang.Object");
-      thisClass.setModifiers(Access.PUBLIC);
-    ]|
+      -> <conc> (gen-name, gen-mods, gen-super)
+    where   <assimilate-class-name>      name  => gen-name
+          ; <assimilate-class-modifiers> mods  => gen-mods
+          ; <assimilate-class-super>     super => gen-super
+
+  assimilate-class-name =
+   ?Id(name)
+   ; !Lit(String([Chars(name)]))
+   ; !bstm* |[ ClassType thisClass = new ClassType(~<id>); ]|
+
+  assimilate-class-modifiers =
+    if ?[] then ![] else
+      foldr(!Lit(Deci("0")), combine-class-modifiers, assimilate-modifier)
+      ; !bstm* |[ thisClass.setModifiers( ~<id> ); ]|
+    end
+
+  combine-class-modifiers :
+    (mod, rest) -> Or(mod, rest)
+
+  assimilate-modifier : Public    -> e |[ Access.PUBLIC    ]|
+  assimilate-modifier : Private   -> e |[ Access.PRIVATE   ]|
+  assimilate-modifier : Protected -> e |[ Access.PROTECTED ]|
+  assimilate-modifier : Static    -> e |[ Access.STATIC    ]|
+  assimilate-modifier : Final     -> e |[ Access.FINAL     ]|
+
+  /**
+   * todo: This is a hack.
+   */
+  assimilate-class-super =
+    if ?None then ![] else
+      collect(is-string)
+      ; separate-by(|".")
+      ; foldr(!"", conc-strings)
+      ; !bstm* |[ thisClass.setSuper( ~<!Lit(String([Chars(<id>)]))> ); ]|
+    end
 
   Assimilate(s) :
     ClassBody(decs) -> []

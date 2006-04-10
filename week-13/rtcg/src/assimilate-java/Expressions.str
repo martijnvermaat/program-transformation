@@ -8,25 +8,25 @@ rules
     |[ i ]| -> bstm* |[ thisCode.emitPushInt(i); ]|
 
   Assimilate(s) :
-    |[ e1 + e2 ]| -> <conc>(bstm1*, bstm2*, add)
+    |[ e1 + e2 ]| -> <conc> (bstm1*, bstm2*, add)
       where   <s> e1 => bstm1*
             ; <s> e2 => bstm2*
             ; !bstm* |[ thisCode.emitAdd(); ]| => add
 
   Assimilate(s) :
-    |[ e1 - e2 ]| -> <conc>(bstm1*, bstm2*, sub)
+    |[ e1 - e2 ]| -> <conc> (bstm1*, bstm2*, sub)
       where   <s> e1 => bstm1*
             ; <s> e2 => bstm2*
             ; !bstm* |[ thisCode.emitSub(); ]| => sub
 
   Assimilate(s) :
-    |[ e1 * e2 ]| -> <conc>(bstm1*, bstm2*, mul)
+    |[ e1 * e2 ]| -> <conc> (bstm1*, bstm2*, mul)
       where   <s> e1 => bstm1*
             ; <s> e2 => bstm2*
             ; !bstm* |[ thisCode.emitMul(); ]| => mul
 
   Assimilate(s) :
-    |[ e1 / e2 ]| -> <conc>(bstm1*, bstm2*, div)
+    |[ e1 / e2 ]| -> <conc> (bstm1*, bstm2*, div)
       where   <s> e1 => bstm1*
             ; <s> e2 => bstm2*
             ; !bstm* |[ thisCode.emitDiv(); ]| => div

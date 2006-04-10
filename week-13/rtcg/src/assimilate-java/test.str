@@ -80,16 +80,28 @@ strategies
   test-classdecs = id
 
     ; test-classdec(
-        debug(!">>> ")
+        id
       | "Simple class declaration"
       , type-dec |[ class Test1 { } ]|
       )
     ; test-classdec(|"Simple class declaration"
       , type-dec |[ class Test2 { } ]|
-      , bstm* |[ ClassType thisClass;
-                 thisClass = new ClassType("Test2");
-                 thisClass.setSuper("java.lang.Object");
-                 thisClass.setModifiers(Access.PUBLIC); ]|
+      , bstm* |[ ClassType thisClass = new ClassType("Test2"); ]|
+      )
+    ; test-classdec(|"Class declaration with modifiers"
+      , type-dec |[ public class Test2 { } ]|
+      , bstm* |[ ClassType thisClass = new ClassType("Test2");
+                 thisClass.setModifiers(Access.PUBLIC | 0); ]|
+      )
+    ; test-classdec(|"Class declaration with modifiers"
+      , type-dec |[ public final class Test2 { } ]|
+      , bstm* |[ ClassType thisClass = new ClassType("Test2");
+                 thisClass.setModifiers(Access.PUBLIC | (Access.FINAL | 0)); ]|
+      )
+    ; test-classdec(|"Class declaration with super"
+      , type-dec |[ class Test2 extends Object { } ]|
+      , bstm* |[ ClassType thisClass = new ClassType("Test2");
+                 thisClass.setSuper("java.lang.Object"); ]|
       )
 
 strategies
