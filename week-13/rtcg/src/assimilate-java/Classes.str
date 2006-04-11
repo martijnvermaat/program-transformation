@@ -12,19 +12,58 @@ imports
 
 rules
 
+  /**
+   * Assimilate class declaration.
+   */
   Assimilate(s) =
     ?ClassDec(head, body)
     ; <mapconcat(s)>[head, body]
 
   /**
-   * todo: Annotations are ignored.
+   * Assimilate class declaration head.
+   * todo: Annotations, type parameters, interfaces.
+   */
+  Assimilate(s) =
+    ?ClassDecHead(mods, name, type-params, super, interfaces)
+    ; <concat> [ <assimilate-class-name>      name
+               , <assimilate-class-modifiers> mods
+               , <assimilate-class-super>     super ]
+
+  /**
+   * Assimilate class declaration body.
+   */
+  Assimilate(s) =
+    ?ClassBody(decs)
+    ; <mapconcat(s)> decs
+
+  /**
+   * Assimilate method declaration.
+   * todo: Find out about scoping?
+   */
+  Assimilate(s) =
+    ?MethodDec(head, body)
+    ; <mapconcat(s)> [head, body]
+
+  /**
+   * Assimilate method declaration head.
+   *
+   * (Anno | MethodMod)* TypeParams? ResultType Id "(" {FormalParam ","}* ")" Throws?
+   *
+   */
+  Assimilate(s) =
+    ?MethodDecHead(mods, type-params, result-type, name, params, throws)
+    ; <concat> [ <assimilate-method-name> name
+               , <assimilate-method-sig>  (params, result-type)
+               , bstm* |[ thisMethod.initCode();
+                          CodeAttr thisCode = thisMethod.getCode(); ]| ]
+
+  /**
+   * Assimilate empty method declaration body.
    */
   Assimilate(s) :
-    ClassDecHead(mods, name, type-params, super, interfaces)
-      -> <conc> (gen-name, gen-mods, gen-super)
-    where   <assimilate-class-name>      name  => gen-name
-          ; <assimilate-class-modifiers> mods  => gen-mods
-          ; <assimilate-class-super>     super => gen-super
+    NoMethodBody -> []
+
+strategies
 
   assimilate-class-name =
    ?Id(name)
@@ -47,6 +86,8 @@ rules
   assimilate-modifier : Final     -> e |[ Access.FINAL     ]|
 
   /**
+   * Create a string from a superclass definition and use this in a setSuper
+   * call.
    * todo: This is a hack.
    */
   assimilate-class-super =
@@ -57,5 +98,46 @@ rules
       ; !bstm* |[ thisClass.setSuper( ~<!Lit(String([Chars(<id>)]))> ); ]|
     end
 
-  Assimilate(s) :
-    ClassBody(decs) -> []
+  assimilate-method-name =
+    ?Id(name)
+    ; !Lit(String([Chars(name)]))
+    ; !bstm* |[ Method thisMethod = thisClass.addMethod(~<id>); ]|
+
+  /**
+   * Generate a method signature from parameters and return type.
+   * Example:
+   *   ([Param(_, Boolean, _), Param(_, Int, _)], void) -> "(ZI)V"
+   * todo: non-primitive types
+   */
+  assimilate-method-sig = 
+    ?(params, return)
+    ; <concat-strings> [ "("
+                       , <process-method-sig-params> params
+                       , ")"
+                       , <assimilate-descriptor> return ]
+    ; !Lit(String([Chars(<id>)]))
+    ; !bstm* |[ thisMethod.setSignature( ~<id> ); ]|
+
+  /**
+   * Get a string with type descriptors separated by commas.
+   */
+  process-method-sig-params =
+    map(get-parameter-type; assimilate-descriptor)
+    ; separate-by(|",")
+    ; concat-strings
+
+  /**
+   * Extract type from method parameter.
+   */
+  get-parameter-type :
+    Param(_, t, _) -> t
+
+  assimilate-descriptor : Void    -> "V"
+  assimilate-descriptor : Boolean -> "Z"
+  assimilate-descriptor : Byte    -> "B"
+  assimilate-descriptor : Short   -> "S"
+  assimilate-descriptor : Int     -> "I"
+  assimilate-descriptor : Long    -> "J"
+  assimilate-descriptor : Char    -> "C"
+  assimilate-descriptor : Float   -> "F"
+  assimilate-descriptor : Double  -> "D"

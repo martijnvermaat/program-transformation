@@ -14,7 +14,8 @@ strategies
         observables-wrap(
             test-expressions
           ; test-statements
-          ; test-classdecs
+          ; test-method-decs
+          ; test-class-decs
         )
       )
     )
@@ -77,7 +78,18 @@ strategies
       ![]
     )
 
-  test-classdecs = id
+  test-method-decs = id
+
+    ; apply-test(!"Simple method declaration",
+      assimilate,
+      !class-body-dec |[ void hoi() { } ]|,
+      !bstm* |[ Method thisMethod = thisClass.addMethod("hoi");
+                thisMethod.setSignature("()V");
+                thisMethod.initCode();
+                CodeAttr thisCode = thisMethod.getCode(); ]|
+    )
+
+  test-class-decs = id
 
     ; test-classdec(
         id
