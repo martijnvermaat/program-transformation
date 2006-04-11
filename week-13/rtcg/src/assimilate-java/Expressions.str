@@ -14,6 +14,8 @@ rules
           ; <s> e2 => stm2
           ; !bstm* |[ thisCode.~method(); ]| => emit
 
+rules
+
   assimilate-operator : "Plus"  -> Id("emitAdd")
   assimilate-operator : "Mul"   -> Id("emitMul")
   assimilate-operator : "Minus" -> Id("emitSub")

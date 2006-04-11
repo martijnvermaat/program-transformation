@@ -2,13 +2,36 @@ module assimilate-java/Statements
 imports
   Java-EBlock
 
-strategies
-
-  Assimilate(s) =
-    ?Block(<id>)
-    ; mapconcat(s)
-
 rules
 
+  /**
+   * Block statement.
+   */
+  Assimilate(s) :
+    Block(stm*) -> <mapconcat(s)> stm*
+
+  /**
+   * Empty statement.
+   */
   Assimilate(s) :
     Empty -> []
+
+  /**
+   * Assimilate expression statement.
+   *
+   * The value of the expression might stay on the stack unnoticed. Problem is
+   * that a store operation implicitly does a pop, so it depends if the
+   * expression is an assignment or not.
+   * Easiest solution is to do a dup before every store and pop after all
+   * expression statements. This is not in the spirit of store, but it makes
+   * assignments deeper inside expressions work.
+   * The Java compiler is a bit smarter about this. It inserts a dup if it
+   * sees that the assignment is deeper inside an expression.
+   *
+   * todo: Remember to do the dup at assignments and look out for other such
+   *       cases.
+   */
+  Assimilate(s) =
+    ?ExprStm(<id>)
+    ; <concat> [ <s>
+               , bstm* |[ thisCode.emitPop(1); ]| ]

@@ -38,24 +38,25 @@ rules
 
   /**
    * Assimilate method declaration.
-   * todo: Find out about scoping?
    */
   Assimilate(s) =
     ?MethodDec(head, body)
-    ; <mapconcat(s)> [head, body]
+    ; <concat> [ <s> head
+               , bstm* |[ thisCode.pushScope(); ]|
+               , <s> body
+               , bstm* |[ thisCode.popScope();  ]| ]
 
   /**
    * Assimilate method declaration head.
-   *
-   * (Anno | MethodMod)* TypeParams? ResultType Id "(" {FormalParam ","}* ")" Throws?
-   *
+   * todo: Annotations, type parameters, throws.
    */
   Assimilate(s) =
     ?MethodDecHead(mods, type-params, result-type, name, params, throws)
-    ; <concat> [ <assimilate-method-name> name
-               , <assimilate-method-sig>  (params, result-type)
-               , bstm* |[ thisMethod.initCode();
-                          CodeAttr thisCode = thisMethod.getCode(); ]| ]
+    ; <concat> [ <assimilate-method-name>      name
+               , <assimilate-method-sig>       (params, result-type)
+               , <assimilate-method-modifiers> mods
+               , <generate-method-init>
+               , <assimilate-method-params>    params ]
 
   /**
    * Assimilate empty method declaration body.
@@ -70,20 +71,15 @@ strategies
    ; !Lit(String([Chars(name)]))
    ; !bstm* |[ ClassType thisClass = new ClassType(~<id>); ]|
 
+  /**
+   * Generate statement setting modifiers from list of modifiers.
+   * See assimilate-method-modifiers below for an example.
+   */
   assimilate-class-modifiers =
     if ?[] then ![] else
-      foldr(!Lit(Deci("0")), combine-class-modifiers, assimilate-modifier)
+      foldr(!Lit(Deci("0")), combine-modifiers, assimilate-modifier)
       ; !bstm* |[ thisClass.setModifiers( ~<id> ); ]|
     end
-
-  combine-class-modifiers :
-    (mod, rest) -> Or(mod, rest)
-
-  assimilate-modifier : Public    -> e |[ Access.PUBLIC    ]|
-  assimilate-modifier : Private   -> e |[ Access.PRIVATE   ]|
-  assimilate-modifier : Protected -> e |[ Access.PROTECTED ]|
-  assimilate-modifier : Static    -> e |[ Access.STATIC    ]|
-  assimilate-modifier : Final     -> e |[ Access.FINAL     ]|
 
   /**
    * Create a string from a superclass definition and use this in a setSuper
@@ -132,6 +128,62 @@ strategies
   get-parameter-type :
     Param(_, t, _) -> t
 
+  /**
+   * Generate statement setting modifiers from list of modifiers.
+   * Example:
+   *   [Public, Static] -> |[ thisMethod.setModifiers(
+                                Access.PUBLIC | (Access.STATIC | 0)
+                              ) ]|
+   */
+  assimilate-method-modifiers =
+    if ?[] then ![] else
+      foldr(!Lit(Deci("0")), combine-modifiers, assimilate-modifier)
+      ; !bstm* |[ thisMethod.setModifiers( ~<id> ); ]|
+    end
+
+  /**
+   * Generate initialization statements for method declaration.
+   */
+  generate-method-init =
+    !bstm* |[ thisMethod.initCode();
+              CodeAttr thisCode = thisMethod.getCode(); ]|
+
+  /**
+   * Generate statements for declaring method parameters.
+   */
+  assimilate-method-params =
+    mapconcat(assimilate-method-param)
+
+  /**
+   * Generate statement for declaring method parameter.
+   * todo: Modifiers, variable arity parameter?
+   * todo: Dynamic rule for variable name and scope it.
+   * todo: refactor
+   */
+  assimilate-method-param =
+    ?Param(_, type, Id(name))
+    ; !Lit(String([Chars(name)])) => bvar
+    ; !Id(<new>) => avar
+    ; <assimilate-type> type => vartype
+    ; !bstm* |[ Variable ~avar = thisCode.addLocal(~vartype, ~bvar); ]|
+
+rules
+
+  combine-modifiers :
+    (mod, rest) -> Or(mod, rest)
+
+  assimilate-modifier : Public       -> e |[ Access.PUBLIC       ]|
+  assimilate-modifier : Private      -> e |[ Access.PRIVATE      ]|
+  assimilate-modifier : Protected    -> e |[ Access.PROTECTED    ]|
+  assimilate-modifier : Abstract     -> e |[ Access.Abstract     ]|
+  assimilate-modifier : Final        -> e |[ Access.FINAL        ]|
+  assimilate-modifier : Static       -> e |[ Access.STATIC       ]|
+  assimilate-modifier : Native       -> e |[ Access.Native       ]|
+  assimilate-modifier : Transient    -> e |[ Access.Transient    ]|
+  assimilate-modifier : Volatile     -> e |[ Access.Volatile     ]|
+  assimilate-modifier : Synchronized -> e |[ Access.Synchronized ]|
+  assimilate-modifier : StrictFP     -> e |[ Access.StrictFP     ]|
+
   assimilate-descriptor : Void    -> "V"
   assimilate-descriptor : Boolean -> "Z"
   assimilate-descriptor : Byte    -> "B"
@@ -141,3 +193,7 @@ strategies
   assimilate-descriptor : Char    -> "C"
   assimilate-descriptor : Float   -> "F"
   assimilate-descriptor : Double  -> "D"
+
+  /* todo: complete */
+  assimilate-type : Boolean -> e |[ Type.boolean_type ]|
+  assimilate-type : Int     -> e |[ Type.int_type     ]|

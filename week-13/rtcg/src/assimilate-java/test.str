@@ -77,6 +77,12 @@ strategies
       !bstm |[ { ; ; ; ; } ]|,
       ![]
     )
+    ; apply-test(!"Expression statement",
+      assimilate,
+      !bstm |[ 37; ]|,
+      !bstm* |[ thisCode.emitPushInt(37);
+                thisCode.emitPop(1); ]|
+    )
 
   test-method-decs = id
 
@@ -86,7 +92,68 @@ strategies
       !bstm* |[ Method thisMethod = thisClass.addMethod("hoi");
                 thisMethod.setSignature("()V");
                 thisMethod.initCode();
-                CodeAttr thisCode = thisMethod.getCode(); ]|
+                CodeAttr thisCode = thisMethod.getCode();
+                thisCode.pushScope();
+                thisCode.popScope(); ]|
+    )
+    ; apply-and-check(!"Method declaration with parameter",
+      assimilate,
+      !class-body-dec |[ void test(int m) { } ]|,
+      /* Here we use a match, because we don't know what the variables will be
+         named. */
+      ?bstm* |[ Method thisMethod = thisClass.addMethod("test");
+                thisMethod.setSignature("(I)V");
+                thisMethod.initCode();
+                CodeAttr thisCode = thisMethod.getCode();
+                Variable ~var = thisCode.addLocal(Type.int_type, "m");
+                thisCode.pushScope();
+                thisCode.popScope(); ]|
+    )
+    ; apply-and-check(!"Method declaration with parameters and return type",
+      assimilate,
+      !class-body-dec |[ int test(boolean n, int m) { } ]|,
+      ?bstm* |[ Method thisMethod = thisClass.addMethod("test");
+                thisMethod.setSignature("(Z,I)I");
+                thisMethod.initCode();
+                CodeAttr thisCode = thisMethod.getCode();
+                Variable ~var1 = thisCode.addLocal(Type.boolean_type, "n");
+                Variable ~var2 = thisCode.addLocal(Type.int_type, "m");
+                thisCode.pushScope();
+                thisCode.popScope(); ]|
+    )
+    ; apply-test(!"Method declaration with modifier",
+      assimilate,
+      !class-body-dec |[ public void hoi() { } ]|,
+      !bstm* |[ Method thisMethod = thisClass.addMethod("hoi");
+                thisMethod.setSignature("()V");
+                thisMethod.setModifiers(Access.PUBLIC | 0);
+                thisMethod.initCode();
+                CodeAttr thisCode = thisMethod.getCode();
+                thisCode.pushScope();
+                thisCode.popScope(); ]|
+    )
+    ; apply-test(!"Method declaration with modifiers",
+      assimilate,
+      !class-body-dec |[ public static void hoi() { } ]|,
+      !bstm* |[ Method thisMethod = thisClass.addMethod("hoi");
+                thisMethod.setSignature("()V");
+                thisMethod.setModifiers(Access.PUBLIC | (Access.STATIC | 0));
+                thisMethod.initCode();
+                CodeAttr thisCode = thisMethod.getCode();
+                thisCode.pushScope();
+                thisCode.popScope(); ]|
+    )
+    ; apply-test(!"Simple method declaration with expression statement",
+      assimilate,
+      !class-body-dec |[ void hoi() { 4; } ]|,
+      !bstm* |[ Method thisMethod = thisClass.addMethod("hoi");
+                thisMethod.setSignature("()V");
+                thisMethod.initCode();
+                CodeAttr thisCode = thisMethod.getCode();
+                thisCode.pushScope();
+                thisCode.emitPushInt(4);
+                thisCode.emitPop(1);
+                thisCode.popScope(); ]|
     )
 
   test-class-decs = id
