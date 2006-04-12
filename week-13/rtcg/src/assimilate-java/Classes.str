@@ -164,7 +164,7 @@ strategies
   assimilate-method-param =
     ?Param(_, type, Id(name))
     ; !Lit(String([Chars(name)])) => bytevar
-    ; new => var
+    ; <newname> "var" => var
     ; <assimilate-type> type => vartype
     ; !bstm* |[ Variable ~<!Id(var)> =
                   thisCode.addLocal(~vartype, ~bytevar); ]|

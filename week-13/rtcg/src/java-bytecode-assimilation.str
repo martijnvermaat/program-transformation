@@ -1,9 +1,15 @@
 module java-bytecode-assimilation
-imports libdryad Java-15-in-Java-15 Java-EBlock 
+imports
+  libdryad
+  Java-15-in-Java-15
+  Java-EBlock
+  assimilate-java/Classes
+  assimilate-java/Statements
+  assimilate-java/Expressions
 
 strategies
 
-  main = 
+  main =
     init-observables
     ; xtc-multi-io-wrap(
         observables-wrap(
@@ -18,12 +24,12 @@ strategies
   init-observables =
     where(
       <set-config> (ObservableClasses(), [
-        <xtc-find> "rt.classes", 
+        <xtc-find> "rt.classes",
         "../gnu-bytecode/kawa-1.8.jar"
       ])
     )
 
-rules 
+rules
 
   // find quoted code fragments in methods
 
@@ -32,13 +38,13 @@ rules
     where {| LocalVar
            : <alltd(declare-meta-param)> head1 => head2
            ; <alltd(assimilate-quotes)> block1 => block2
-           |} 
+           |}
 
-  // declare parameters marked as meta-var; 
+  // declare parameters marked as meta-var;
   // use dynamic rule to propagate to uses of variables
 
   declare-meta-param :
-    Param([], t, MetaVar(Id(x))) -> Param([], t, var)
+    Param([], t, MetaVar(Id(x))) -> Param([], t, Id(var))
     where <newjavaid> "var" => var
           ; rules( LocalVar : x -> var )
 
@@ -53,24 +59,27 @@ rules
  
   assimilate-quoted-class :
     QuoteClassDec(cdec) ->
-    expr|[ {| ClassType thisClass; ~bstm*:<assimilate-class> cdec | thisClass |} ]|
+    expr|[ {| ~bstm*:<assimilate-class> cdec | thisClass |} ]|
+/*    expr|[ {| ClassType thisClass; ~bstm*:<assimilate-class> cdec | thisClass |} ]|*/
 
   assimilate-quote-block-stms :
    QuoteBlockStms(stms) -> Block(<mapconcat(assimilate-block-statement)>stms)
 
   assimilate-meta-var :
-    MetaVar(Id(x)) -> var
+    MetaVar(Id(x)) -> Id(var)
     where <LocalVar> x => var
 
   assimilate-block-statement =
-    fail
+    Assimilate(assimilate-class)
 
   assimilate-class =
-    fail
+    Assimilate(assimilate-class)
 
 strategies // utils
 
   // Create a new Java identifier given a string.
 
   newjavaid =
-    !Id(<newname>)
+    newname
+
+/*    !Id(<newname>) */
