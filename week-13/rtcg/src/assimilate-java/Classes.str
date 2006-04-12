@@ -86,15 +86,16 @@ strategies
    * Create a string from a superclass definition and use this in a setSuper
    * call.
    * todo: This is a hack.
-   * todo: Should we assume java.lang.Object if no super is given?
    */
   assimilate-class-super =
-    if ?None then ![] else
+    if ?None then
+      !"java.lang.Object"
+    else
       collect(is-string)
       ; separate-by(|".")
       ; foldr(!"", conc-strings)
-      ; !bstm* |[ thisClass.setSuper( ~<!Lit(String([Chars(<id>)]))> ); ]|
     end
+    ; !bstm* |[ thisClass.setSuper( ~<!Lit(String([Chars(<id>)]))> ); ]|
 
   assimilate-method-name =
     ?Id(name)

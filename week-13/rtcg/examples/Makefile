@@ -33,7 +33,7 @@ clean:
 
 # run the Java code with appropriate command-line arguments
 %.run : %.class
-	java -cp $(JARS) $* $(RUNARGS_$*)
+	java -cp $(JARS):. $* $(RUNARGS_$*)
 
 RUNARGS_RTCG4Generated = 1024
 RUNARGS_RTCG4bGenerated = 1024

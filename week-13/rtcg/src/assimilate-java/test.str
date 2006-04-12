@@ -215,22 +215,25 @@ strategies
       )
     ; test-classdec(|"Simple class declaration"
       , type-dec |[ class Test2 { } ]|
-      , bstm* |[ ClassType thisClass = new ClassType("Test2"); ]|
+      , bstm* |[ ClassType thisClass = new ClassType("Test2");
+                 thisClass.setSuper("java.lang.Object"); ]|
       )
     ; test-classdec(|"Class declaration with modifiers"
       , type-dec |[ public class Test2 { } ]|
       , bstm* |[ ClassType thisClass = new ClassType("Test2");
-                 thisClass.setModifiers(Access.PUBLIC | 0); ]|
+                 thisClass.setModifiers(Access.PUBLIC | 0);
+                 thisClass.setSuper("java.lang.Object"); ]|
       )
     ; test-classdec(|"Class declaration with modifiers"
       , type-dec |[ public final class Test2 { } ]|
       , bstm* |[ ClassType thisClass = new ClassType("Test2");
-                 thisClass.setModifiers(Access.PUBLIC | (Access.FINAL | 0)); ]|
+                 thisClass.setModifiers(Access.PUBLIC | (Access.FINAL | 0));
+                 thisClass.setSuper("java.lang.Object"); ]|
       )
     ; test-classdec(|"Class declaration with super"
-      , type-dec |[ class Test2 extends Object { } ]|
+      , type-dec |[ class Test2 extends java.lang.String { } ]|
       , bstm* |[ ClassType thisClass = new ClassType("Test2");
-                 thisClass.setSuper("java.lang.Object"); ]|
+                 thisClass.setSuper("java.lang.String"); ]|
       )
 
 strategies
