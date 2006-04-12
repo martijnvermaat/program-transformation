@@ -157,17 +157,26 @@ strategies
   /**
    * Generate statement for declaring method parameter.
    * todo: Modifiers, variable arity parameter?
-   * todo: Dynamic rule for variable name and scope it.
-   * todo: refactor
+   * todo: Scope LocalVar rule somewhere.
+   * todo: De-uglify, move rules() and <new> to separate strategy.
+   * todo: Combine with local variable declarations.
    */
   assimilate-method-param =
     ?Param(_, type, Id(name))
-    ; !Lit(String([Chars(name)])) => bvar
-    ; !Id(<new>) => avar
+    ; !Lit(String([Chars(name)])) => bytevar
+    ; new => var
     ; <assimilate-type> type => vartype
-    ; !bstm* |[ Variable ~avar = thisCode.addLocal(~vartype, ~bvar); ]|
+    ; !bstm* |[ Variable ~<!Id(var)> =
+                  thisCode.addLocal(~vartype, ~bytevar); ]|
+    ; rules (
+        LocalVar : name -> var
+      )
 
 rules
+
+  /**
+   * todo: Move te separate file.
+   */
 
   combine-modifiers :
     (mod, rest) -> Or(mod, rest)

@@ -4,9 +4,23 @@ imports
 
 rules
 
+  /**
+   * Assimilate decimal constant.
+   * todo: Is this correct wrt typing?
+   */
   Assimilate(s) :
-    |[ i ]| -> bstm* |[ thisCode.emitPushInt(i); ]|
+    e |[ i ]| -> bstm* |[ thisCode.emitPushInt(i); ]|
 
+  /**
+   * Assimilate local variable.
+   */
+  Assimilate(s) :
+    e |[ x ]| -> bstm* |[ thisCode.emitLoad( ~var ); ]|
+    where !ExprName(Id( <LocalVar> x )) => var
+
+  /**
+   * Assimilate binary operator.
+   */
   Assimilate(s) :
     op#([e1, e2]) -> <conc> (stm1, stm2, emit)
     where   <assimilate-operator> op => method

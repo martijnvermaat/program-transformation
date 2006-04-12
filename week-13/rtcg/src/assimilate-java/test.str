@@ -83,6 +83,25 @@ strategies
       !bstm* |[ thisCode.emitPushInt(37);
                 thisCode.emitPop(1); ]|
     )
+    /* Here we use a match, because we don't know what the variables will be
+       named. */
+    ; apply-and-check(!"Local variable declaration",
+      assimilate,
+      !bstm |[ int n; ]|,
+      ?bstm* |[ Variable ~x1 = thisCode.addLocal(Type.int_type, "n"); ]|
+    )
+    ; apply-and-check(!"Local variable declaration",
+      assimilate,
+      !bstm |[ int n; ]|,
+      <LocalVar> "n"
+    )
+    ; apply-and-check(!"Local variable declaration and use",
+      assimilate,
+      !bstm |[ { int n; n; } ]|,
+      ?bstm* |[ Variable ~x2 = thisCode.addLocal(Type.int_type, "n");
+                thisCode.emitLoad( ~<!ExprName(x2)> );
+                thisCode.emitPop(1); ]|
+    )
 
   test-method-decs = id
 
@@ -99,14 +118,25 @@ strategies
     ; apply-and-check(!"Method declaration with parameter",
       assimilate,
       !class-body-dec |[ void test(int m) { } ]|,
-      /* Here we use a match, because we don't know what the variables will be
-         named. */
       ?bstm* |[ Method thisMethod = thisClass.addMethod("test");
                 thisMethod.setSignature("(I)V");
                 thisMethod.initCode();
                 CodeAttr thisCode = thisMethod.getCode();
                 Variable ~var = thisCode.addLocal(Type.int_type, "m");
                 thisCode.pushScope();
+                thisCode.popScope(); ]|
+    )
+    ; apply-and-check(!"Method declaration with parameter",
+      assimilate,
+      !class-body-dec |[ void test(int m) { m; } ]|,
+      ?bstm* |[ Method thisMethod = thisClass.addMethod("test");
+                thisMethod.setSignature("(I)V");
+                thisMethod.initCode();
+                CodeAttr thisCode = thisMethod.getCode();
+                Variable ~x = thisCode.addLocal(Type.int_type, "m");
+                thisCode.pushScope();
+                thisCode.emitLoad( ~<!ExprName(x)> );
+                thisCode.emitPop(1);
                 thisCode.popScope(); ]|
     )
     ; apply-and-check(!"Method declaration with parameters and return type",
