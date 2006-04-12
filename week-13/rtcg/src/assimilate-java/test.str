@@ -102,6 +102,26 @@ strategies
                 thisCode.emitLoad( ~<!ExprName(x2)> );
                 thisCode.emitPop(1); ]|
     )
+    ; apply-and-check(!"Return statement",
+      assimilate,
+      !bstm |[ return; ]|,
+      ?bstm* |[ thisCode.emitReturn(); ]|
+    )
+    ; apply-and-check(!"Return statement with value",
+      assimilate,
+      !bstm |[ return 4; ]|,
+      ?bstm* |[ thisCode.emitPushInt(4);
+                thisCode.emitReturn(); ]|
+    )
+    ; apply-and-check(!"Return statement with expression",
+      assimilate,
+      !bstm |[ return 4 + 2; ]|,
+      ?bstm* |[ thisCode.emitPushInt(4);
+                thisCode.emitPushInt(2);
+                thisCode.emitAdd();
+                thisCode.emitReturn(); ]|
+    )
+
 
   test-method-decs = id
 

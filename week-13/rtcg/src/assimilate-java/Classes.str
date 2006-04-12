@@ -22,6 +22,7 @@ rules
   /**
    * Assimilate class declaration head.
    * todo: Annotations, type parameters, interfaces.
+   * todo: Should we generate empty constructor if none is given?
    */
   Assimilate(s) =
     ?ClassDecHead(mods, name, type-params, super, interfaces)
@@ -41,10 +42,10 @@ rules
    */
   Assimilate(s) =
     ?MethodDec(head, body)
-    ; <concat> [ <s> head
-               , bstm* |[ thisCode.pushScope(); ]|
-               , <s> body
-               , bstm* |[ thisCode.popScope();  ]| ]
+    ; !bstm* |[ ~*< <s> head >
+                thisCode.pushScope();
+                ~*< <s> body >
+                thisCode.popScope(); ]|
 
   /**
    * Assimilate method declaration head.
@@ -85,6 +86,7 @@ strategies
    * Create a string from a superclass definition and use this in a setSuper
    * call.
    * todo: This is a hack.
+   * todo: Should we assume java.lang.Object if no super is given?
    */
   assimilate-class-super =
     if ?None then ![] else

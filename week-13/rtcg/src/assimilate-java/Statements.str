@@ -44,6 +44,18 @@ rules
     ; mapconcat( assimilate-local-var-dec(|type) )
 
   /**
+   * Assimilate return statement.
+   */
+  Assimilate(s) :
+    bstm |[ return e; ]| -> bstm* |[ ~*< <s> e >
+                                     thisCode.emitReturn(); ]|
+
+  Assimilate(s) :
+    bstm |[ return; ]| -> bstm* |[ thisCode.emitReturn(); ]|
+
+strategies
+
+  /**
    * Assimilate simple local variable declaration.
    * todo: De-uglify, combine with method parameters.
    */

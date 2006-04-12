@@ -20,13 +20,18 @@ rules
 
   /**
    * Assimilate binary operator.
+   * todo: Use PrimType argument, eg Type.int_type for emitAdd method. This is
+   * actually quite nasty, because Java expects us to do implicit casts, for
+   * example 5 + 4l is a long-add with a conversion from int to long on the
+   * first number. We won't do things like this.
    */
   Assimilate(s) :
-    op#([e1, e2]) -> <conc> (stm1, stm2, emit)
+    op#([e1, e2]) -> bstm* |[ ~*operands
+                              thisCode.~method(); ]|
     where   <assimilate-operator> op => method
-          ; <s> e1 => stm1
-          ; <s> e2 => stm2
-          ; !bstm* |[ thisCode.~method(); ]| => emit
+          ; <concat> [ <s> e1
+                     , <s> e2 ] => operands
+
 
 rules
 
