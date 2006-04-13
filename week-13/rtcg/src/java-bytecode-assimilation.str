@@ -10,7 +10,8 @@ imports
 strategies
 
   /**
-   * todo: Anti-quotations.
+   * todo: Anti-quotations. By passing alternatives to the Assimilate rule
+   *       using the left choice operator.
    */
 
   main =
