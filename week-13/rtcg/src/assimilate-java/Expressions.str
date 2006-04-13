@@ -28,23 +28,6 @@ rules
     where !ExprName(Id( <LocalVar> x )) => var
 
   /**
-   * Assimilate post-increment of local variable.
-   * todo: Doesn't emitInc push the result on the stack for us?
-   */
-  Assimilate(s) :
-    e |[ x++ ]| -> bstm* |[ thisCode.emitInc( ~var , (short)1 );
-                            thisCode.emitLoad( ~var ); ]|
-    where !ExprName(Id( <LocalVar> x )) => var
-
-  /**
-   * Assimilate post-decrement of local variable.
-   */
-  Assimilate(s) :
-    e |[ x-- ]| -> bstm* |[ thisCode.emitInc( ~var , (short)-1 );
-                            thisCode.emitLoad( ~var ); ]|
-    where !ExprName(Id( <LocalVar> x )) => var
-
-  /**
    * Assimilate undercover local variable.
    * We kinda stretch the use of dryad, and it sometimes recognizes local
    * variables as if they are fields. Therefore we handle fields like they
@@ -52,6 +35,23 @@ rules
    */
   Assimilate(s) :
     Field(Id(x)) -> bstm* |[ thisCode.emitLoad( ~var ); ]|
+    where !ExprName(Id( <LocalVar> x )) => var
+
+  /**
+   * Assimilate post-increment of local variable.
+   * todo: Doesn't emitInc push the result on the stack for us?
+   */
+  Assimilate(s) :
+    e |[ x++ ]| -> bstm* |[ thisCode.emitInc( ~var , (short)1 );
+                             thisCode.emitLoad( ~var ); ]|
+    where !ExprName(Id( <LocalVar> x )) => var
+
+  /**
+   * Assimilate post-decrement of local variable.
+   */
+  Assimilate(s) :
+    e |[ x-- ]| -> bstm* |[ thisCode.emitInc( ~var , (short)-1 );
+                             thisCode.emitLoad( ~var ); ]|
     where !ExprName(Id( <LocalVar> x )) => var
 
   /**
@@ -109,7 +109,7 @@ rules
    * Assimilate assignment where lefthand-side is an undercover variable.
    */
   Assimilate(s) :
-    e |[ ~<!Field(Id(x))> = e ]| -> bstm* |[ ~*< <s> e >
+    e |[ ~Field(Id(x)) = e ]| -> bstm* |[ ~*< <s> e >
                                     thisCode.emitDup();
                                     thisCode.emitStore( ~var ); ]|
     where !ExprName(Id( <LocalVar> x )) => var
