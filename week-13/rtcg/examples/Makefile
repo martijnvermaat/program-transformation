@@ -38,4 +38,6 @@ clean:
 RUNARGS_RTCG4Generated = 1024
 RUNARGS_RTCG4bGenerated = 1024
 
-test : RTCG4Generated.class
+RUNARGS_RTCG3Generated = 500
+
+test : RTCG2Generated.class RTCG3Generated.class RTCG4Generated.class

@@ -22,15 +22,25 @@ strategies
 
   test-expressions = id
 
-    ; apply-test(!"Simple literal",
+    ; apply-test(!"Simple literal int",
       assimilate,
       !e |[ 1 ]|,
       !bstm* |[ thisCode.emitPushInt(1); ]|
     )
-    ; apply-test(!"Simple literal",
+    ; apply-test(!"Simple literal int",
       assimilate,
       !e |[ 3 ]|,
       !bstm* |[ thisCode.emitPushInt(3); ]|
+    )
+    ; apply-test(!"Simple literal boolean",
+      assimilate,
+      !e |[ true ]|,
+      !bstm* |[ thisCode.emitPushInt(1); ]|
+    )
+    ; apply-test(!"Simple literal boolean",
+      assimilate,
+      !e |[ false ]|,
+      !bstm* |[ thisCode.emitPushInt(0); ]|
     )
     ; apply-test(!"Simple literal addition",
       assimilate,
@@ -63,6 +73,61 @@ strategies
                 thisCode.emitAdd();
                 thisCode.emitPushInt(5);
                 thisCode.emitSub(); ]|
+    )
+    ; apply-test(!"Simple post-increment",
+      assimilate,
+      rules ( LocalVar : "var555" -> "var_0" )
+      ; !e |[ var555++ ]|,
+      !bstm* |[ thisCode.emitInc(var_0, (short)1);
+                thisCode.emitLoad(var_0); ]|
+    )
+    ; apply-test(!"Simple post-decrement",
+      assimilate,
+      rules ( LocalVar : "var556" -> "var_0" )
+      ; !e |[ var556-- ]|,
+      !bstm* |[ thisCode.emitInc(var_0, (short)-1);
+                thisCode.emitLoad(var_0); ]|
+    )
+    ; apply-test(!"Simple assignment",
+      assimilate,
+      rules ( LocalVar : "var5434" -> "var_0" )
+      ; !e |[ var5434 = 4 ]|,
+      !bstm* |[ thisCode.emitPushInt(4);
+                thisCode.emitDup();
+                thisCode.emitStore(var_0); ]|
+    )
+    ; apply-test(!"Assignment of expression",
+      assimilate,
+      rules ( LocalVar : "var5435" -> "var_0"
+              LocalVar : "var5436" -> "var_1" )
+      ; !e |[ var5435 =  78 + var5436 ]|,
+      !bstm* |[ thisCode.emitPushInt(78);
+                thisCode.emitLoad(var_1);
+                thisCode.emitAdd();
+                thisCode.emitDup();
+                thisCode.emitStore(var_0); ]|
+    )
+    ; apply-test(!"Simple gt check",
+      assimilate,
+      !e |[ 456 > 34 ]|,
+      !bstm* |[ thisCode.emitPushInt(456);
+                thisCode.emitPushInt(34);
+                thisCode.emitIfGt();
+                thisCode.pushInt(1);
+                thisCode.emitElse();
+                thisCode.pushInt(0);
+                thisCode.emitFi(); ]|
+    )
+    ; apply-test(!"Simple lt check",
+      assimilate,
+      !e |[ 456 < 34 ]|,
+      !bstm* |[ thisCode.emitPushInt(456);
+                thisCode.emitPushInt(34);
+                thisCode.emitIfLt();
+                thisCode.pushInt(1);
+                thisCode.emitElse();
+                thisCode.pushInt(0);
+                thisCode.emitFi(); ]|
     )
 
   test-statements = id
@@ -102,26 +167,36 @@ strategies
                 thisCode.emitLoad( ~<!ExprName(x2)> );
                 thisCode.emitPop(1); ]|
     )
-    ; apply-and-check(!"Return statement",
+    ; apply-test(!"Return statement",
       assimilate,
       !bstm |[ return; ]|,
-      ?bstm* |[ thisCode.emitReturn(); ]|
+      !bstm* |[ thisCode.emitReturn(); ]|
     )
-    ; apply-and-check(!"Return statement with value",
+    ; apply-test(!"Return statement with value",
       assimilate,
       !bstm |[ return 4; ]|,
-      ?bstm* |[ thisCode.emitPushInt(4);
+      !bstm* |[ thisCode.emitPushInt(4);
                 thisCode.emitReturn(); ]|
     )
-    ; apply-and-check(!"Return statement with expression",
+    ; apply-test(!"Return statement with expression",
       assimilate,
       !bstm |[ return 4 + 2; ]|,
-      ?bstm* |[ thisCode.emitPushInt(4);
+      !bstm* |[ thisCode.emitPushInt(4);
                 thisCode.emitPushInt(2);
                 thisCode.emitAdd();
                 thisCode.emitReturn(); ]|
     )
-
+    ; apply-and-check(!"Simple do-while loop",
+      assimilate,
+      !bstm |[ do 5; while(true); ]|,
+      ?bstm* |[ Label ~x10 = new Label(thisCode);
+                ~<!x10>.define(thisCode);
+                thisCode.emitPushInt(5);
+                thisCode.emitPop(1);
+                thisCode.emitPushInt(1);
+                thisCode.emitPushInt(0);
+                thisCode.emitGotoIfGt( ~<!ExprName(x10)> ); ]|
+    )
 
   test-method-decs = id
 

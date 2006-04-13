@@ -1,6 +1,6 @@
 module assimilate-java/Expressions
 imports
-  Java-EBlock
+  assimilate-java/Util
 
 rules
 
@@ -12,10 +12,46 @@ rules
     e |[ i ]| -> bstm* |[ thisCode.emitPushInt(i); ]|
 
   /**
+   * Assimilate boolean constant.
+   */
+  Assimilate(s) :
+    e |[ true ]| -> bstm* |[ thisCode.emitPushInt(1); ]|
+
+  Assimilate(s) :
+    e |[ false ]| -> bstm* |[ thisCode.emitPushInt(0); ]|
+
+  /**
    * Assimilate local variable.
    */
   Assimilate(s) :
     e |[ x ]| -> bstm* |[ thisCode.emitLoad( ~var ); ]|
+    where !ExprName(Id( <LocalVar> x )) => var
+
+  /**
+   * Assimilate post-increment of local variable.
+   * todo: Doesn't emitInc push the result on the stack for us?
+   */
+  Assimilate(s) :
+    e |[ x++ ]| -> bstm* |[ thisCode.emitInc( ~var , (short)1 );
+                            thisCode.emitLoad( ~var ); ]|
+    where !ExprName(Id( <LocalVar> x )) => var
+
+  /**
+   * Assimilate post-decrement of local variable.
+   */
+  Assimilate(s) :
+    e |[ x-- ]| -> bstm* |[ thisCode.emitInc( ~var , (short)-1 );
+                            thisCode.emitLoad( ~var ); ]|
+    where !ExprName(Id( <LocalVar> x )) => var
+
+  /**
+   * Assimilate undercover local variable.
+   * We kinda stretch the use of dryad, and it sometimes recognizes local
+   * variables as if they are fields. Therefore we handle fields like they
+   * are local variables. We don't support real fields anyway.
+   */
+  Assimilate(s) :
+    Field(Id(x)) -> bstm* |[ thisCode.emitLoad( ~var ); ]|
     where !ExprName(Id( <LocalVar> x )) => var
 
   /**
@@ -32,10 +68,48 @@ rules
           ; <concat> [ <s> e1
                      , <s> e2 ] => operands
 
+  /**
+   * Assimilate > operator.
+   * There are no booleans in bytecode. They are just 0 and 1 integers.
+   */
+  Assimilate(s) :
+    e |[ e1 > e2 ]| -> bstm* |[ ~*operands
+                                thisCode.emitIfGt();
+                                thisCode.pushInt(1);
+                                thisCode.emitElse();
+                                thisCode.pushInt(0);
+                                thisCode.emitFi(); ]|
+    where <concat> [ <s> e1
+                   , <s> e2 ] => operands
 
-rules
+  /**
+   * Assimilate < operator.
+   * There are no booleans in bytecode. They are just 0 and 1 integers.
+   */
+  Assimilate(s) :
+    e |[ e1 < e2 ]| -> bstm* |[ ~*operands
+                                thisCode.emitIfLt();
+                                thisCode.pushInt(1);
+                                thisCode.emitElse();
+                                thisCode.pushInt(0);
+                                thisCode.emitFi(); ]|
+    where <concat> [ <s> e1
+                   , <s> e2 ] => operands
 
-  assimilate-operator : "Plus"  -> Id("emitAdd")
-  assimilate-operator : "Mul"   -> Id("emitMul")
-  assimilate-operator : "Minus" -> Id("emitSub")
-  assimilate-operator : "Div"   -> Id("emitDiv")
+  /**
+   * Assimilate assignment.
+   */
+  Assimilate(s) :
+    e |[ x = e ]| -> bstm* |[ ~*< <s> e >
+                              thisCode.emitDup();
+                              thisCode.emitStore( ~var ); ]|
+    where !ExprName(Id( <LocalVar> x )) => var
+
+  /**
+   * Assimilate assignment where lefthand-side is an undercover variable.
+   */
+  Assimilate(s) :
+    e |[ ~<!Field(Id(x))> = e ]| -> bstm* |[ ~*< <s> e >
+                                    thisCode.emitDup();
+                                    thisCode.emitStore( ~var ); ]|
+    where !ExprName(Id( <LocalVar> x )) => var

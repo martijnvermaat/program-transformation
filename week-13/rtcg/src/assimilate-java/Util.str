@@ -1,0 +1,36 @@
+module assimilate-java/Util
+
+rules
+
+  combine-modifiers :
+    (mod, rest) -> Or(mod, rest)
+
+  assimilate-modifier : Public       -> e |[ Access.PUBLIC       ]|
+  assimilate-modifier : Private      -> e |[ Access.PRIVATE      ]|
+  assimilate-modifier : Protected    -> e |[ Access.PROTECTED    ]|
+  assimilate-modifier : Abstract     -> e |[ Access.Abstract     ]|
+  assimilate-modifier : Final        -> e |[ Access.FINAL        ]|
+  assimilate-modifier : Static       -> e |[ Access.STATIC       ]|
+  assimilate-modifier : Native       -> e |[ Access.Native       ]|
+  assimilate-modifier : Transient    -> e |[ Access.Transient    ]|
+  assimilate-modifier : Volatile     -> e |[ Access.Volatile     ]|
+  assimilate-modifier : Synchronized -> e |[ Access.Synchronized ]|
+  assimilate-modifier : StrictFP     -> e |[ Access.StrictFP     ]|
+
+  assimilate-descriptor : Void    -> "V"
+  assimilate-descriptor : Boolean -> "Z"
+  assimilate-descriptor : Byte    -> "B"
+  assimilate-descriptor : Short   -> "S"
+  assimilate-descriptor : Int     -> "I"
+  assimilate-descriptor : Long    -> "J"
+  assimilate-descriptor : Char    -> "C"
+  assimilate-descriptor : Float   -> "F"
+  assimilate-descriptor : Double  -> "D"
+
+  assimilate-type : Boolean -> e |[ Type.boolean_type ]|
+  assimilate-type : Int     -> e |[ Type.int_type     ]|
+
+  assimilate-operator : "Plus"  -> Id("emitAdd")
+  assimilate-operator : "Mul"   -> Id("emitMul")
+  assimilate-operator : "Minus" -> Id("emitSub")
+  assimilate-operator : "Div"   -> Id("emitDiv")

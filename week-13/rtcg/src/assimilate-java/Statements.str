@@ -1,6 +1,7 @@
 module assimilate-java/Statements
 imports
-  Java-EBlock
+  assimilate-java/Util
+  assimilate-java/Expressions
 
 rules
 
@@ -53,6 +54,20 @@ rules
   Assimilate(s) :
     bstm |[ return; ]| -> bstm* |[ thisCode.emitReturn(); ]|
 
+  /**
+   * Assimilate do-while statement.
+   */
+  Assimilate(s) :
+    DoWhile(body, condition) ->
+    bstm* |[ Label ~label = new Label(thisCode);
+             ~<!label>.define(thisCode);
+             ~*code
+             thisCode.emitPushInt(0);
+             thisCode.emitGotoIfGt( ~<!ExprName(label)> ); ]|
+    where   !Id(< <newname> "start"> ) => label
+          ; <concat> [ <s> body
+                     , <s> condition ] => code
+
 strategies
 
   /**
@@ -76,10 +91,5 @@ strategies
    */
   assimilate-local-var-dec(|type) =
     ?VarDec(Id(name), exp)
+    ; debug(!"Not implemented:")
     ; ![]
-
-rules
-
-  /* todo: complete */
-  assimilate-type : Boolean -> e |[ Type.boolean_type ]|
-  assimilate-type : Int     -> e |[ Type.int_type     ]|
