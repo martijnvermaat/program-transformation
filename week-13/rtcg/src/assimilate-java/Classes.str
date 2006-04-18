@@ -88,6 +88,7 @@ strategies
    * Create a string from a superclass definition and use this in a setSuper
    * call.
    * todo: This is a hack.
+   * todo: use dryad get-super and similar?
    */
   assimilate-class-super =
     if ?None then
