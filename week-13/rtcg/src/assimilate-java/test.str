@@ -81,10 +81,24 @@ strategies
       !bstm* |[ thisCode.emitInc(var_0, (short)1);
                 thisCode.emitLoad(var_0); ]|
     )
+    ; apply-test(!"Simple post-increment of field",
+      assimilate,
+      rules ( LocalVar : "var757" -> "var_0" )
+      ; !PostIncr(Field(Id("var757"))),
+      !bstm* |[ thisCode.emitInc(var_0, (short)1);
+                thisCode.emitLoad(var_0); ]|
+    )
     ; apply-test(!"Simple post-decrement",
       assimilate,
       rules ( LocalVar : "var556" -> "var_0" )
       ; !e |[ var556-- ]|,
+      !bstm* |[ thisCode.emitInc(var_0, (short)-1);
+                thisCode.emitLoad(var_0); ]|
+    )
+    ; apply-test(!"Simple post-decrement of field",
+      assimilate,
+      rules ( LocalVar : "var756" -> "var_0" )
+      ; !PostDecr(Field(Id("var756"))),
       !bstm* |[ thisCode.emitInc(var_0, (short)-1);
                 thisCode.emitLoad(var_0); ]|
     )
@@ -93,6 +107,14 @@ strategies
       rules ( LocalVar : "var5434" -> "var_0" )
       ; !e |[ var5434 = 4 ]|,
       !bstm* |[ thisCode.emitPushInt(4);
+                thisCode.emitDup();
+                thisCode.emitStore(var_0); ]|
+    )
+    ; apply-test(!"Simple assignment to field",
+      assimilate,
+      rules ( LocalVar : "var7665" -> "var_0" )
+      ; !Assign(Field(Id("var7665")),Lit(Deci("1"))),
+      !bstm* |[ thisCode.emitPushInt(1);
                 thisCode.emitDup();
                 thisCode.emitStore(var_0); ]|
     )
@@ -113,9 +135,9 @@ strategies
       !bstm* |[ thisCode.emitPushInt(456);
                 thisCode.emitPushInt(34);
                 thisCode.emitIfGt();
-                thisCode.pushInt(1);
+                thisCode.emitPushInt(1);
                 thisCode.emitElse();
-                thisCode.pushInt(0);
+                thisCode.emitPushInt(0);
                 thisCode.emitFi(); ]|
     )
     ; apply-test(!"Simple lt check",
@@ -124,9 +146,9 @@ strategies
       !bstm* |[ thisCode.emitPushInt(456);
                 thisCode.emitPushInt(34);
                 thisCode.emitIfLt();
-                thisCode.pushInt(1);
+                thisCode.emitPushInt(1);
                 thisCode.emitElse();
-                thisCode.pushInt(0);
+                thisCode.emitPushInt(0);
                 thisCode.emitFi(); ]|
     )
 
@@ -167,6 +189,18 @@ strategies
                 thisCode.emitLoad( ~<!ExprName(x2)> );
                 thisCode.emitPop(1); ]|
     )
+    ; apply-test(!"Use of local variable",
+      assimilate,
+      rules ( LocalVar : "var7663" -> "var_0" )
+      ; !ExprName(Id("var7663")),
+      !bstm* |[ thisCode.emitLoad(var_0); ]|
+    )
+    ; apply-test(!"Use of local variable (field version)",
+      assimilate,
+      rules ( LocalVar : "var7664" -> "var_0" )
+      ; !Field(Id("var7664")),
+      !bstm* |[ thisCode.emitLoad(var_0); ]|
+    )
     ; apply-test(!"Return statement",
       assimilate,
       !bstm |[ return; ]|,
@@ -203,20 +237,20 @@ strategies
     ; apply-test(!"Simple method declaration",
       assimilate,
       !class-body-dec |[ void hoi() { } ]|,
-      !bstm* |[ Method thisMethod = thisClass.addMethod("hoi");
+      !bstm* |[ thisMethod = thisClass.addMethod("hoi");
                 thisMethod.setSignature("()V");
                 thisMethod.initCode();
-                CodeAttr thisCode = thisMethod.getCode();
+                thisCode = thisMethod.getCode();
                 thisCode.pushScope();
                 thisCode.popScope(); ]|
     )
     ; apply-and-check(!"Method declaration with parameter",
       assimilate,
       !class-body-dec |[ void test(int m) { } ]|,
-      ?bstm* |[ Method thisMethod = thisClass.addMethod("test");
+      ?bstm* |[ thisMethod = thisClass.addMethod("test");
                 thisMethod.setSignature("(I)V");
                 thisMethod.initCode();
-                CodeAttr thisCode = thisMethod.getCode();
+                thisCode = thisMethod.getCode();
                 Variable ~var = thisCode.addLocal(Type.int_type, "m");
                 thisCode.pushScope();
                 thisCode.popScope(); ]|
@@ -224,10 +258,10 @@ strategies
     ; apply-and-check(!"Method declaration with parameter",
       assimilate,
       !class-body-dec |[ void test(int m) { m; } ]|,
-      ?bstm* |[ Method thisMethod = thisClass.addMethod("test");
+      ?bstm* |[ thisMethod = thisClass.addMethod("test");
                 thisMethod.setSignature("(I)V");
                 thisMethod.initCode();
-                CodeAttr thisCode = thisMethod.getCode();
+                thisCode = thisMethod.getCode();
                 Variable ~x = thisCode.addLocal(Type.int_type, "m");
                 thisCode.pushScope();
                 thisCode.emitLoad( ~<!ExprName(x)> );
@@ -237,10 +271,10 @@ strategies
     ; apply-and-check(!"Method declaration with parameters and return type",
       assimilate,
       !class-body-dec |[ int test(boolean n, int m) { } ]|,
-      ?bstm* |[ Method thisMethod = thisClass.addMethod("test");
+      ?bstm* |[ thisMethod = thisClass.addMethod("test");
                 thisMethod.setSignature("(Z,I)I");
                 thisMethod.initCode();
-                CodeAttr thisCode = thisMethod.getCode();
+                thisCode = thisMethod.getCode();
                 Variable ~var1 = thisCode.addLocal(Type.boolean_type, "n");
                 Variable ~var2 = thisCode.addLocal(Type.int_type, "m");
                 thisCode.pushScope();
@@ -249,32 +283,32 @@ strategies
     ; apply-test(!"Method declaration with modifier",
       assimilate,
       !class-body-dec |[ public void hoi() { } ]|,
-      !bstm* |[ Method thisMethod = thisClass.addMethod("hoi");
+      !bstm* |[ thisMethod = thisClass.addMethod("hoi");
                 thisMethod.setSignature("()V");
                 thisMethod.setModifiers(Access.PUBLIC | 0);
                 thisMethod.initCode();
-                CodeAttr thisCode = thisMethod.getCode();
+                thisCode = thisMethod.getCode();
                 thisCode.pushScope();
                 thisCode.popScope(); ]|
     )
     ; apply-test(!"Method declaration with modifiers",
       assimilate,
       !class-body-dec |[ public static void hoi() { } ]|,
-      !bstm* |[ Method thisMethod = thisClass.addMethod("hoi");
+      !bstm* |[ thisMethod = thisClass.addMethod("hoi");
                 thisMethod.setSignature("()V");
                 thisMethod.setModifiers(Access.PUBLIC | (Access.STATIC | 0));
                 thisMethod.initCode();
-                CodeAttr thisCode = thisMethod.getCode();
+                thisCode = thisMethod.getCode();
                 thisCode.pushScope();
                 thisCode.popScope(); ]|
     )
     ; apply-test(!"Simple method declaration with expression statement",
       assimilate,
       !class-body-dec |[ void hoi() { 4; } ]|,
-      !bstm* |[ Method thisMethod = thisClass.addMethod("hoi");
+      !bstm* |[ thisMethod = thisClass.addMethod("hoi");
                 thisMethod.setSignature("()V");
                 thisMethod.initCode();
-                CodeAttr thisCode = thisMethod.getCode();
+                thisCode = thisMethod.getCode();
                 thisCode.pushScope();
                 thisCode.emitPushInt(4);
                 thisCode.emitPop(1);
@@ -284,32 +318,33 @@ strategies
   test-class-decs = id
 
     ; test-classdec(
-        id
+        id /* todo: Reminder for other testcall, remove later. */
       | "Simple class declaration"
       , type-dec |[ class Test1 { } ]|
       )
     ; test-classdec(|"Simple class declaration"
       , type-dec |[ class Test2 { } ]|
-      , bstm* |[ ClassType thisClass = new ClassType("Test2");
+      , bstm* |[ thisClass = new ClassType("Test2");
                  thisClass.setSuper("java.lang.Object"); ]|
       )
     ; test-classdec(|"Class declaration with modifiers"
       , type-dec |[ public class Test2 { } ]|
-      , bstm* |[ ClassType thisClass = new ClassType("Test2");
+      , bstm* |[ thisClass = new ClassType("Test2");
                  thisClass.setModifiers(Access.PUBLIC | 0);
                  thisClass.setSuper("java.lang.Object"); ]|
       )
     ; test-classdec(|"Class declaration with modifiers"
       , type-dec |[ public final class Test2 { } ]|
-      , bstm* |[ ClassType thisClass = new ClassType("Test2");
+      , bstm* |[ thisClass = new ClassType("Test2");
                  thisClass.setModifiers(Access.PUBLIC | (Access.FINAL | 0));
                  thisClass.setSuper("java.lang.Object"); ]|
       )
     ; test-classdec(|"Class declaration with super"
       , type-dec |[ class Test2 extends java.lang.String { } ]|
-      , bstm* |[ ClassType thisClass = new ClassType("Test2");
+      , bstm* |[ thisClass = new ClassType("Test2");
                  thisClass.setSuper("java.lang.String"); ]|
       )
+    /* todo: Testing classes with methods. */
 
 strategies
 

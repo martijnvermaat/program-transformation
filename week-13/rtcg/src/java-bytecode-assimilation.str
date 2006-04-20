@@ -62,9 +62,13 @@ rules
 
   // a class fragment is an expression that produces a ClassType
  
+  /**
+   * todo: Explain what the declarations in block are all about.
+   * todo: Can we also solve the issue of more thisClass declarations?
+   */
   assimilate-quoted-class :
     QuoteClassDec(cdec) ->
-    expr|[ {| ~bstm*:<assimilate-class> cdec | thisClass |} ]|
+    expr|[ {| ClassType thisClass; { Method thisMethod; CodeAttr thisCode; ~bstm*:<assimilate-class> cdec } | thisClass |} ]|
 /*    expr|[ {| ClassType thisClass; ~bstm*:<assimilate-class> cdec | thisClass |} ]|*/
 
   assimilate-quote-block-stms :
@@ -75,10 +79,10 @@ rules
     where <LocalVar> x => var
 
   assimilate-block-statement =
-    Assimilate(assimilate-class)
+    Assimilate(assimilate-block-statement) <+ (debug;fail)
 
   assimilate-class =
-    Assimilate(assimilate-class)
+    Assimilate(assimilate-class) <+ (debug;fail)
 
 strategies // utils
 

@@ -9,7 +9,7 @@
 import gnu.bytecode.*;
 import java.io.*;			// IOException
 
-public class RTCG3Gen {
+public class RTCG3Generated {
   public static void main(String[] args) 
     throws IOException, NoSuchMethodException, IllegalAccessException, 
            java.lang.reflect.InvocationTargetException {

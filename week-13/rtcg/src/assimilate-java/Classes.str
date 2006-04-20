@@ -41,6 +41,9 @@ rules
   /**
    * Assimilate method declaration.
    * todo: Generate return statement for void methods.
+   * todo: Block scope is a hack, maybe do thisCode and thisMethod declaration
+   *       only once (in java-bytecode-assimilation) and scope block of entire
+   *       class dec.
    */
   Assimilate(s) =
     ?MethodDec(head, body)
@@ -72,7 +75,7 @@ strategies
   assimilate-class-name =
    ?Id(name)
    ; !Lit(String([Chars(name)]))
-   ; !bstm* |[ ClassType thisClass = new ClassType(~<id>); ]|
+   ; !bstm* |[ thisClass = new ClassType(~<id>); ]|
 
   /**
    * Generate statement setting modifiers from list of modifiers.
@@ -103,7 +106,7 @@ strategies
   assimilate-method-name =
     ?Id(name)
     ; !Lit(String([Chars(name)]))
-    ; !bstm* |[ Method thisMethod = thisClass.addMethod(~<id>); ]|
+    ; !bstm* |[ thisMethod = thisClass.addMethod(~<id>); ]|
 
   /**
    * Generate a method signature from parameters and return type.
@@ -152,7 +155,7 @@ strategies
    */
   generate-method-init =
     !bstm* |[ thisMethod.initCode();
-              CodeAttr thisCode = thisMethod.getCode(); ]|
+              thisCode = thisMethod.getCode(); ]|
 
   /**
    * Generate statements for declaring method parameters.
