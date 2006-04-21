@@ -31,6 +31,10 @@ public class RTCG4Generated {
  
     // Call the method:    
     System.out.println(m.invoke(null, new Object[] { new Integer(3) }));
+
+    // Call the method:    
+    System.out.println(Power(n, 3));
+
   }
 
   public static ClassType GenPowerClass(int n)

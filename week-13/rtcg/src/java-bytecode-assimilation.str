@@ -10,8 +10,7 @@ imports
 strategies
 
   /**
-   * todo: Anti-quotations. By passing alternatives to the Assimilate rule
-   *       using the left choice operator.
+   * todo: Tidy code and comments.
    */
 
   main =
@@ -60,29 +59,43 @@ rules
     <+ assimilate-quoted-class
     <+ assimilate-meta-var
 
-  // a class fragment is an expression that produces a ClassType
- 
   /**
-   * todo: Explain what the declarations in block are all about.
-   * todo: Can we also solve the issue of more thisClass declarations?
+   * Assimilate a quoted class declaration. The assimilated fragment is an
+   * expression that produces a ClassType.
+   * Declaration of variables used in assimilation is done in a block, so they
+   * can be used more than once.
    */
   assimilate-quoted-class :
     QuoteClassDec(cdec) ->
-    expr|[ {| ClassType thisClass; { Method thisMethod; CodeAttr thisCode; ~bstm*:<assimilate-class> cdec } | thisClass |} ]|
-/*    expr|[ {| ClassType thisClass; ~bstm*:<assimilate-class> cdec | thisClass |} ]|*/
+    expr|[ {|
+              ClassType ~className;
+              {
+                ClassType thisClass;
+                Method thisMethod;
+                CodeAttr thisCode;
+                ~bstm*:<assimilate-embedding> cdec
+                ~className = thisClass;
+              }
+              | ~className
+           |} ]|
+    where !Id( <newjavaid> "class" ) => className
 
   assimilate-quote-block-stms :
-   QuoteBlockStms(stms) -> Block(<mapconcat(assimilate-block-statement)>stms)
+   QuoteBlockStms(stms) -> Block(<mapconcat(assimilate-embedding)>stms)
 
   assimilate-meta-var :
     MetaVar(Id(x)) -> Id(var)
     where <LocalVar> x => var
 
-  assimilate-block-statement =
-    Assimilate(assimilate-block-statement) <+ (debug;fail)
+  assimilate-embedding =
+       assimilate-anti-quote
+    <+ Assimilate(assimilate-embedding)
+    <+ (debug ; fail)
 
-  assimilate-class =
-    Assimilate(assimilate-class) <+ (debug;fail)
+  assimilate-anti-quote :
+    EscapeFromStm(bstms) -> bstms'
+    where <alltd(assimilate-quotes)> bstms => bstms'
+
 
 strategies // utils
 

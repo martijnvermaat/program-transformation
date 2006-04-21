@@ -100,8 +100,8 @@ rules
   /**
    * Assimilate undercover local variable.
    * We kinda stretch the use of dryad, and it sometimes recognizes local
-   * variables as if they are fields. Therefore we handle fields like they
-   * are local variables. We don't support real fields anyway.
+   * variables as if they were fields. Therefore we handle fields as if they
+   * were local variables. We don't support real fields anyway.
    */
   Assimilate(s) :
     Field(Id(x)) -> bstm* |[ thisCode.emitLoad( ~var ); ]|
