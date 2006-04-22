@@ -74,33 +74,61 @@ strategies
                 thisCode.emitPushInt(5);
                 thisCode.emitSub(); ]|
     )
-    ; apply-test(!"Simple post-increment",
+    ; apply-test(!"Simple pre-increment",
       assimilate,
       rules ( LocalVar : "var555" -> "var_0" )
-      ; !e |[ var555++ ]|,
+      ; !e |[ ++var555 ]|,
       !bstm* |[ thisCode.emitInc(var_0, (short)1);
                 thisCode.emitLoad(var_0); ]|
+    )
+    ; apply-test(!"Simple pre-increment of field",
+      assimilate,
+      rules ( LocalVar : "var757" -> "var_0" )
+      ; !PreIncr(Field(Id("var757"))),
+      !bstm* |[ thisCode.emitInc(var_0, (short)1);
+                thisCode.emitLoad(var_0); ]|
+    )
+    ; apply-test(!"Simple pre-decrement",
+      assimilate,
+      rules ( LocalVar : "var556" -> "var_0" )
+      ; !e |[ --var556 ]|,
+      !bstm* |[ thisCode.emitInc(var_0, (short)-1);
+                thisCode.emitLoad(var_0); ]|
+    )
+    ; apply-test(!"Simple pre-decrement of field",
+      assimilate,
+      rules ( LocalVar : "var756" -> "var_0" )
+      ; !PreDecr(Field(Id("var756"))),
+      !bstm* |[ thisCode.emitInc(var_0, (short)-1);
+                thisCode.emitLoad(var_0); ]|
+    )
+    ; apply-test(!"Simple post-increment",
+      assimilate,
+      rules ( LocalVar : "var1555" -> "var_0" )
+      ; !e |[ var555++ ]|,
+      !bstm* |[ thisCode.emitLoad(var_0);
+                thisCode.emitInc(var_0, (short)1); ]|
     )
     ; apply-test(!"Simple post-increment of field",
       assimilate,
-      rules ( LocalVar : "var757" -> "var_0" )
-      ; !PostIncr(Field(Id("var757"))),
-      !bstm* |[ thisCode.emitInc(var_0, (short)1);
-                thisCode.emitLoad(var_0); ]|
+      rules ( LocalVar : "var1757" -> "var_0" )
+      ; !PostIncr(Field(Id("var1757"))),
+      !bstm* |[ thisCode.emitLoad(var_0);
+                thisCode.emitInc(var_0, (short)1); ]|
     )
     ; apply-test(!"Simple post-decrement",
       assimilate,
-      rules ( LocalVar : "var556" -> "var_0" )
+      rules ( LocalVar : "var1556" -> "var_0" )
       ; !e |[ var556-- ]|,
-      !bstm* |[ thisCode.emitInc(var_0, (short)-1);
-                thisCode.emitLoad(var_0); ]|
+      !bstm* |[ thisCode.emitLoad(var_0);
+                thisCode.emitInc(var_0, (short)-1); ]|
     )
     ; apply-test(!"Simple post-decrement of field",
       assimilate,
-      rules ( LocalVar : "var756" -> "var_0" )
-      ; !PostDecr(Field(Id("var756"))),
-      !bstm* |[ thisCode.emitInc(var_0, (short)-1);
-                thisCode.emitLoad(var_0); ]|
+      rules ( LocalVar : "var1756" -> "var_0" )
+      ; !PostDecr(Field(Id("var1756"))),
+      !bstm* |[ thisCode.emitLoad(var_0);
+                thisCode.emitInc(var_0, (short)-1); ]|
     )
     ; apply-test(!"Simple assignment",
       assimilate,
@@ -177,6 +205,27 @@ strategies
       !bstm |[ int n; ]|,
       ?bstm* |[ Variable ~x1 = thisCode.addLocal(Type.int_type, "n"); ]|
     )
+    ; test-classdec(
+        id /* todo: Reminder for other testcall, remove later. */
+      | "Simple class declaration"
+      , type-dec |[ class Test1 { } ]|
+      )
+
+    ; test-classdec(
+        ?bstm* |[ thisClass = new ClassType("Testje");
+                  thisClass.setSuper("java.lang.Object");
+                  thisMethod = thisClass.addMethod("test");
+                  thisMethod.setSignature("()V");
+                  thisMethod.initCode();
+                  thisCode = thisMethod.getCode();
+                  thisCode.pushScope();
+                  Variable ~x1597 = thisCode.addLocal(
+                    new ObjectType("java.lang.String"), "s");
+                  thisCode.emitReturn();
+                  thisCode.popScope(); ]| <+ debug
+      | "Local variable declaration with reference type"
+      , type-dec |[ class Testje { void test() { String s; } } ]|
+      )
     ; apply-and-check(!"Local variable declaration",
       assimilate,
       !bstm |[ int n; ]|,
@@ -290,7 +339,7 @@ strategies
       , bstm* |[ thisClass = new ClassType("Testje");
                  thisClass.setSuper("java.lang.Object");
                  thisMethod = thisClass.addMethod("test");
-                 thisMethod.setSignature("(Z,I)Ljava/lang/String;");
+                 thisMethod.setSignature("()Ljava/lang/String;");
                  thisMethod.initCode();
                  thisCode = thisMethod.getCode();
                  thisCode.pushScope();

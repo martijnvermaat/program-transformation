@@ -4,7 +4,7 @@ imports
   assimilate-java/Statements
 
 /**
- * todo: Generated statements in concrete syntax are often ambiguous (in the
+ * Generated statements in concrete syntax are often ambiguous (in the
  * qualification part), but we ignore this. Pretty printing will 'just' fix
  * it, but a better solution would be to define some often-used qualifications
  * toplevel using abstract syntax. The test suite would also have to be fixed,
@@ -89,7 +89,6 @@ strategies
   /**
    * Create a string from a superclass definition and use this in a setSuper
    * call.
-   * todo: This is a hack.
    */
   assimilate-class-super =
     if ?None then
@@ -110,7 +109,6 @@ strategies
    * Generate a method signature from parameters and return type.
    * Example:
    *   ([Param(_, Boolean, _), Param(_, Int, _)], void) -> "(ZI)V"
-   * todo: non-primitive types
    */
   assimilate-method-sig = 
     ?(params, return)
@@ -164,17 +162,10 @@ strategies
   /**
    * Generate statement for declaring method parameter.
    * todo: Modifiers, variable arity parameter?
-   * todo: Scope LocalVar rule somewhere.
-   * todo: De-uglify, move rules() and <new> to separate strategy.
-   * todo: Combine with local variable declarations.
    */
-  assimilate-method-param =
-    ?Param(_, type, Id(name))
-    ; !Lit(String([Chars(name)])) => bytevar
-    ; <newname> "var" => var
-    ; <assimilate-type> type => vartype
-    ; !bstm* |[ Variable ~<!Id(var)> =
-                  thisCode.addLocal(~vartype, ~bytevar); ]|
-    ; rules (
-        LocalVar : name -> var
-      )
+  assimilate-method-param :
+    Param(_, type, Id(name)) ->
+    bstm* |[ Variable var = thisCode.addLocal( ~vartype, ~varstring ); ]|
+    where   !Id( <declare-local-var(|name)> ) => var
+          ; !Lit(String([Chars(name)]))       => varstring
+          ; <assimilate-type> type            => vartype

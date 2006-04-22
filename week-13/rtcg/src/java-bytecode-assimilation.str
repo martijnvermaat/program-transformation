@@ -10,10 +10,6 @@ imports
 
 strategies
 
-  /**
-   * todo: Tidy code and comments.
-   */
-
   main =
     init-observables
     ; xtc-multi-io-wrap(
@@ -36,8 +32,9 @@ strategies
 
 rules
 
-  // find quoted code fragments in methods
-
+  /**
+   * Find quoted code fragments in methods.
+   */
   assimilate-in-method :
     MethodDec(head1, block1) -> MethodDec(head2, block2)
     where {| LocalVar
@@ -45,16 +42,18 @@ rules
            ; <alltd(assimilate-quotes)> block1 => block2
            |}
 
-  // declare parameters marked as meta-var;
-  // use dynamic rule to propagate to uses of variables
-
+  /**
+   * Declare parameters marked as meta-var; use dynamic rule to propagate to
+   * uses of variables.
+   */
   declare-meta-param :
     Param([], t, MetaVar(Id(x))) -> Param([], t, Id(var))
-    where <newjavaid> "var" => var
+    where <newname> "var" => var
           ; rules( LocalVar : x -> var )
 
-  // assimilated quote fragments
-
+  /**
+   * Assimilate quoted fragments.
+   */
   assimilate-quotes =
     assimilate-quote-block-stms
     <+ assimilate-quoted-class
@@ -79,7 +78,7 @@ rules
               }
               | ~className
            |} ]|
-    where !Id( <newjavaid> "class" ) => className
+    where !Id( <newname> "class" ) => className
 
   assimilate-quote-block-stms :
    QuoteBlockStms(stms) -> Block(<mapconcat(assimilate-embedding)>stms)
@@ -88,6 +87,11 @@ rules
     MetaVar(Id(x)) -> Id(var)
     where <LocalVar> x => var
 
+strategies
+
+  /**
+   * Assimilate embedded Java code with possible anti quotations.
+   */
   assimilate-embedding =
        assimilate-anti-quote
     <+ repeat(Desugar)
@@ -95,16 +99,9 @@ rules
     <+ debug(!"Cannot assimilate embedded Java: ")
        ; fail
 
+  /**
+   * Assimilate in an anti quotation.
+   */
   assimilate-anti-quote :
     EscapeFromStm(bstms) -> bstms'
     where <alltd(assimilate-quotes)> bstms => bstms'
-
-
-strategies // utils
-
-  // Create a new Java identifier given a string.
-
-  newjavaid =
-    newname
-
-/*    !Id(<newname>) */

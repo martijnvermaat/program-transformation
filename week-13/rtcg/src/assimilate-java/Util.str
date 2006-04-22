@@ -32,15 +32,40 @@ rules
     ; collect(is-string)
     ; separate-by(|"/")
     ; foldr(!"", conc-strings)
-    ; <conc-strings> ["L", <id>, ";"]
+    ; <concat-strings> ["L", <id>, ";"]
+
+  assimilate-type : Boolean -> e |[ Type.boolean_type ]|
+  assimilate-type : Byte    -> e |[ Type.byte_type    ]|
+  assimilate-type : Short   -> e |[ Type.short_type   ]|
+  assimilate-type : Int     -> e |[ Type.int_type     ]|
+  assimilate-type : Long    -> e |[ Type.long_type    ]|
+  assimilate-type : Char    -> e |[ Type.char_type    ]|
+  assimilate-type : Float   -> e |[ Type.float_type   ]|
+  assimilate-type : Double  -> e |[ Type.double_type  ]|
 
   /**
-   * todo: Reference types.
+   * todo: Array types?
    */
-  assimilate-type : Boolean -> e |[ Type.boolean_type ]|
-  assimilate-type : Int     -> e |[ Type.int_type     ]|
+  assimilate-type =
+    (?ClassType(_, _) + ?InterfaceType(_, _))
+    ; collect(is-string)
+    ; separate-by(|".")
+    ; foldr(!"", conc-strings)
+    ; !e |[ new ObjectType( ~<!Lit(String([Chars(<id>)]))> ) ]|
 
   assimilate-operator : "Plus"  -> Id("emitAdd")
   assimilate-operator : "Mul"   -> Id("emitMul")
   assimilate-operator : "Minus" -> Id("emitSub")
   assimilate-operator : "Div"   -> Id("emitDiv")
+
+strategies
+
+  /**
+   * Generate new name for local variable and add rewrite rule for it. New
+   * name is returned.
+   */
+  declare-local-var(|name) =
+    <newname> "var" => var
+    ; rules (
+        LocalVar : name -> var
+      )

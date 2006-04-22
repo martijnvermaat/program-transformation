@@ -28,9 +28,6 @@ rules
    * assignments deeper inside expressions work.
    * The Java compiler is a bit smarter about this. It inserts a dup if it
    * sees that the assignment is deeper inside an expression.
-   *
-   * todo: Remember to do the dup at assignments and look out for other such
-   *       cases.
    */
   Assimilate(s) =
     ?ExprStm(<id>)
@@ -68,28 +65,21 @@ rules
           ; <concat> [ <s> body
                      , <s> condition ] => code
 
-strategies
-
   /**
    * Assimilate simple local variable declaration.
-   * todo: De-uglify, combine with method parameters.
    */
-  assimilate-local-var-dec(|type) =
-    ?VarDec(Id(name))
-    ; !Lit(String([Chars(name)])) => bytevar
-    ; <newname> "var" => var
-    ; <assimilate-type> type => vartype
-    ; !bstm* |[ Variable ~<!Id(var)> =
-                  thisCode.addLocal(~vartype, ~bytevar); ]|
-    ; rules (
-        LocalVar : name -> var
-      )
+  assimilate-local-var-dec(|type) :
+    VarDec(Id(name)) ->
+    bstm* |[ Variable var = thisCode.addLocal( ~vartype, ~varstring ); ]|
+    where   !Id( <declare-local-var(|name)> ) => var
+          ; !Lit(String([Chars(name)]))       => varstring
+          ; <assimilate-type> type            => vartype
 
   /**
    * Assimilate local variable declaration with assignment.
-   * todo: This strategy.
+   * todo: Local variable declaration with assignment.
    */
-  assimilate-local-var-dec(|type) =
-    ?VarDec(Id(name), exp)
-    ; debug(!"Not implemented:")
-    ; ![]
+  assimilate-local-var-dec(|type) :
+    VarDec(Id(name), exp) -> []
+    where   debug(!"Not implemented: ")
+          ; fail

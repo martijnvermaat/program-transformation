@@ -6,7 +6,6 @@ rules
 
   /**
    * Assimilate decimal constant.
-   * todo: Is this correct wrt typing?
    */
   Assimilate(s) :
     e |[ i ]| -> bstm* |[ thisCode.emitPushInt(i); ]|
@@ -29,19 +28,33 @@ rules
 
   /**
    * Assimilate post-increment of local variable.
-   * todo: Doesn't emitInc push the result on the stack for us?
-   * todo: Figure out difference between post and pre inc.
    */
   Assimilate(s) :
-    e |[ x++ ]| -> bstm* |[ thisCode.emitInc( ~var , (short)1 );
-                            thisCode.emitLoad( ~var ); ]|
+    e |[ x++ ]| -> bstm* |[ thisCode.emitLoad( ~var );
+                            thisCode.emitInc( ~var , (short)1 ); ]|
     where !ExprName(Id( <LocalVar> x )) => var
 
   /**
    * Assimilate post-decrement of local variable.
    */
   Assimilate(s) :
-    e |[ x-- ]| -> bstm* |[ thisCode.emitInc( ~var , (short)-1 );
+    e |[ x-- ]| -> bstm* |[ thisCode.emitLoad( ~var );
+                            thisCode.emitInc( ~var , (short)-1 ); ]|
+    where !ExprName(Id( <LocalVar> x )) => var
+
+  /**
+   * Assimilate pre-increment of local variable.
+   */
+  Assimilate(s) :
+    e |[ ++x ]| -> bstm* |[ thisCode.emitInc( ~var , (short)1 );
+                            thisCode.emitLoad( ~var ); ]|
+    where !ExprName(Id( <LocalVar> x )) => var
+
+  /**
+   * Assimilate pre-decrement of local variable.
+   */
+  Assimilate(s) :
+    e |[ --x ]| -> bstm* |[ thisCode.emitInc( ~var , (short)-1 );
                             thisCode.emitLoad( ~var ); ]|
     where !ExprName(Id( <LocalVar> x )) => var
 
@@ -112,16 +125,32 @@ rules
    * Assimilate post-increment of undercover local variable.
    */
   Assimilate(s) :
-    PostIncr(Field(Id(x))) -> bstm* |[ thisCode.emitInc( ~var , (short)1 );
-                                       thisCode.emitLoad( ~var ); ]|
+    PostIncr(Field(Id(x))) -> bstm* |[ thisCode.emitLoad( ~var );
+                                       thisCode.emitInc( ~var , (short)1 ); ]|
     where !ExprName(Id( <LocalVar> x )) => var
 
   /**
    * Assimilate post-decrement of undercover local variable.
    */
   Assimilate(s) :
-    PostDecr(Field(Id(x))) -> bstm* |[ thisCode.emitInc( ~var , (short)-1 );
-                                       thisCode.emitLoad( ~var ); ]|
+    PostDecr(Field(Id(x))) -> bstm* |[ thisCode.emitLoad( ~var );
+                                       thisCode.emitInc( ~var , (short)-1 ); ]|
+    where !ExprName(Id( <LocalVar> x )) => var
+
+  /**
+   * Assimilate pre-increment of undercover local variable.
+   */
+  Assimilate(s) :
+    PreIncr(Field(Id(x))) -> bstm* |[ thisCode.emitInc( ~var , (short)1 );
+                                      thisCode.emitLoad( ~var ); ]|
+    where !ExprName(Id( <LocalVar> x )) => var
+
+  /**
+   * Assimilate pre-increment of undercover local variable.
+   */
+  Assimilate(s) :
+    PreDecr(Field(Id(x))) -> bstm* |[ thisCode.emitInc( ~var , (short)-1 );
+                                      thisCode.emitLoad( ~var ); ]|
     where !ExprName(Id( <LocalVar> x )) => var
 
   /**
