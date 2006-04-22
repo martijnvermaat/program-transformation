@@ -40,16 +40,15 @@ rules
 
   /**
    * Assimilate method declaration.
-   * todo: Generate return statement for void methods.
-   * todo: Block scope is a hack, maybe do thisCode and thisMethod declaration
-   *       only once (in java-bytecode-assimilation) and scope block of entire
-   *       class dec.
+   * todo: Generate return statement only for void methods or even only if it
+   *       is absent.
    */
   Assimilate(s) =
     ?MethodDec(head, body)
     ; !bstm* |[ ~*< <s> head >
                 thisCode.pushScope();
                 ~*< <s> body >
+                thisCode.emitReturn();
                 thisCode.popScope(); ]|
 
   /**
@@ -91,7 +90,6 @@ strategies
    * Create a string from a superclass definition and use this in a setSuper
    * call.
    * todo: This is a hack.
-   * todo: use dryad get-super and similar?
    */
   assimilate-class-super =
     if ?None then
@@ -127,7 +125,7 @@ strategies
    * Get a string with type descriptors separated by commas.
    */
   process-method-sig-params =
-    map(get-parameter-type; assimilate-descriptor)
+    map(get-parameter-type ; assimilate-descriptor)
     ; separate-by(|",")
     ; concat-strings
 

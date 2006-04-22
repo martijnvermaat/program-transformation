@@ -242,6 +242,7 @@ strategies
                 thisMethod.initCode();
                 thisCode = thisMethod.getCode();
                 thisCode.pushScope();
+                thisCode.emitReturn();
                 thisCode.popScope(); ]|
     )
     ; apply-and-check(!"Method declaration with parameter",
@@ -253,6 +254,7 @@ strategies
                 thisCode = thisMethod.getCode();
                 Variable ~var = thisCode.addLocal(Type.int_type, "m");
                 thisCode.pushScope();
+                thisCode.emitReturn();
                 thisCode.popScope(); ]|
     )
     ; apply-and-check(!"Method declaration with parameter",
@@ -266,6 +268,7 @@ strategies
                 thisCode.pushScope();
                 thisCode.emitLoad( ~<!ExprName(x)> );
                 thisCode.emitPop(1);
+                thisCode.emitReturn();
                 thisCode.popScope(); ]|
     )
     ; apply-and-check(!"Method declaration with parameters and return type",
@@ -278,8 +281,22 @@ strategies
                 Variable ~var1 = thisCode.addLocal(Type.boolean_type, "n");
                 Variable ~var2 = thisCode.addLocal(Type.int_type, "m");
                 thisCode.pushScope();
+                thisCode.emitReturn();
                 thisCode.popScope(); ]|
     )
+    /* We need reclassification here for reference type. */
+    ; test-classdec(|"Method declaration with non-primitive return type"
+      , type-dec |[ class Testje { String test() { } } ]|
+      , bstm* |[ thisClass = new ClassType("Testje");
+                 thisClass.setSuper("java.lang.Object");
+                 thisMethod = thisClass.addMethod("test");
+                 thisMethod.setSignature("(Z,I)Ljava/lang/String;");
+                 thisMethod.initCode();
+                 thisCode = thisMethod.getCode();
+                 thisCode.pushScope();
+                 thisCode.emitReturn();
+                 thisCode.popScope(); ]|
+      )
     ; apply-test(!"Method declaration with modifier",
       assimilate,
       !class-body-dec |[ public void hoi() { } ]|,
@@ -289,6 +306,7 @@ strategies
                 thisMethod.initCode();
                 thisCode = thisMethod.getCode();
                 thisCode.pushScope();
+                thisCode.emitReturn();
                 thisCode.popScope(); ]|
     )
     ; apply-test(!"Method declaration with modifiers",
@@ -300,6 +318,7 @@ strategies
                 thisMethod.initCode();
                 thisCode = thisMethod.getCode();
                 thisCode.pushScope();
+                thisCode.emitReturn();
                 thisCode.popScope(); ]|
     )
     ; apply-test(!"Simple method declaration with expression statement",
@@ -312,6 +331,7 @@ strategies
                 thisCode.pushScope();
                 thisCode.emitPushInt(4);
                 thisCode.emitPop(1);
+                thisCode.emitReturn();
                 thisCode.popScope(); ]|
     )
 

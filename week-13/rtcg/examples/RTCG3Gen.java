@@ -22,18 +22,15 @@ public class RTCG3Generated {
             do {
               x = x - 1;
             } while(x > 0);
-            return;
           }
           public static void MyMethod2(int x) {
             do { 
             } while( (x = x - 1) > 0 );
-            return;
           }
           public static void MyMethod3(int x) {
             do {
               x--;
             } while(x > 0);
-            return;
           }
         }
     ]|;

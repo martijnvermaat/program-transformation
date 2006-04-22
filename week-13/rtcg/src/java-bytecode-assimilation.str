@@ -3,6 +3,7 @@ imports
   libdryad
   Java-15-in-Java-15
   Java-EBlock
+  desugar-java/Statements
   assimilate-java/Classes
   assimilate-java/Statements
   assimilate-java/Expressions
@@ -89,8 +90,10 @@ rules
 
   assimilate-embedding =
        assimilate-anti-quote
-    <+ Assimilate(assimilate-embedding)
-    <+ (debug ; fail)
+    <+ repeat(Desugar)
+       ; Assimilate(assimilate-embedding)
+    <+ debug(!"Cannot assimilate embedded Java: ")
+       ; fail
 
   assimilate-anti-quote :
     EscapeFromStm(bstms) -> bstms'

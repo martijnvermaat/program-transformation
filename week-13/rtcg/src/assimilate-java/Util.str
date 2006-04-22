@@ -27,6 +27,16 @@ rules
   assimilate-descriptor : Float   -> "F"
   assimilate-descriptor : Double  -> "D"
 
+  assimilate-descriptor =
+    (?ClassType(_, _) + ?InterfaceType(_, _))
+    ; collect(is-string)
+    ; separate-by(|"/")
+    ; foldr(!"", conc-strings)
+    ; <conc-strings> ["L", <id>, ";"]
+
+  /**
+   * todo: Reference types.
+   */
   assimilate-type : Boolean -> e |[ Type.boolean_type ]|
   assimilate-type : Int     -> e |[ Type.int_type     ]|
 

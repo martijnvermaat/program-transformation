@@ -30,6 +30,7 @@ rules
   /**
    * Assimilate post-increment of local variable.
    * todo: Doesn't emitInc push the result on the stack for us?
+   * todo: Figure out difference between post and pre inc.
    */
   Assimilate(s) :
     e |[ x++ ]| -> bstm* |[ thisCode.emitInc( ~var , (short)1 );
