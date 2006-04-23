@@ -55,7 +55,8 @@ rules
    * Assimilate quoted fragments.
    */
   assimilate-quotes =
-    assimilate-quote-block-stms
+    assimilate-quoted-block-stms
+    <+ assimilate-quoted-method
     <+ assimilate-quoted-class
     <+ assimilate-meta-var
 
@@ -80,8 +81,22 @@ rules
            |} ]|
     where !Id( <newname> "class" ) => className
 
-  assimilate-quote-block-stms :
-   QuoteBlockStms(stms) -> Block(<mapconcat(assimilate-embedding)>stms)
+  /**
+   * The hack in this is that there has to be a ClassType named thisClass
+   * visible to quote a method declaration.
+   */
+  assimilate-quoted-method :
+   QuoteMethodDec(mdec) -> bstm |[ {
+                                     Method thisMethod;
+                                     CodeAttr thisCode;
+                                     ~bstm*:<assimilate-embedding> mdec
+                                   } ]|
+
+  /**
+   * In the same way, there has to be a visible CodeAttr named thisCode.
+   */
+  assimilate-quoted-block-stms :
+   QuoteBlockStms(stms) -> Block( <mapconcat(assimilate-embedding)> stms )
 
   assimilate-meta-var :
     MetaVar(Id(x)) -> Id(var)

@@ -8,8 +8,12 @@ exports
   context-free syntax
     "genclass" "|[" JavaClassDec "]|" -> Expr {cons("QuoteClassDec")}
 
+    "genmethod" "|[" JavaMethodDec "]|" ";" -> Stm {cons("QuoteMethodDec")}
+
     "genbstms" "|[" JavaBlockStm* "]|" ";" -> Stm {cons("QuoteBlockStms")}
 
     "#genbstms" "|[" BlockStm* "]|" ";" -> JavaStm {cons("EscapeFromStm")}
+
+    "#genmethod" "|[" BlockStm* "]|" ";" -> JavaMethodDec {cons("EscapeFromStm")}
  
     "#var[" JavaId "]" -> Id {cons("MetaVar")}

@@ -36,8 +36,9 @@ clean:
 	java -cp $(JARS):. $* $(RUNARGS_$*)
 
 RUNARGS_RTCG4Generated = 1024
-RUNARGS_RTCG4bGenerated = 1024
 
 RUNARGS_RTCG3Generated = 800000
+
+RUNARGS_RTCG7Generated = 2000 500
 
 test : RTCG2Generated.class RTCG3Generated.class RTCG4Generated.class
