@@ -206,12 +206,6 @@ strategies
       ?bstm* |[ Variable ~x1 = thisCode.addLocal(Type.int_type, "n"); ]|
     )
     ; test-classdec(
-        id /* todo: Reminder for other testcall, remove later. */
-      | "Simple class declaration"
-      , type-dec |[ class Test1 { } ]|
-      )
-
-    ; test-classdec(
         ?bstm* |[ thisClass = new ClassType("Testje");
                   thisClass.setSuper("java.lang.Object");
                   thisMethod = thisClass.addMethod("test");
@@ -235,7 +229,7 @@ strategies
       assimilate,
       !bstm |[ { int n; n; } ]|,
       ?bstm* |[ Variable ~x2 = thisCode.addLocal(Type.int_type, "n");
-                thisCode.emitLoad( ~<!ExprName(x2)> );
+                thisCode.emitLoad( ~<?ExprName(x2)> );
                 thisCode.emitPop(1); ]|
     )
     ; apply-test(!"Use of local variable",
@@ -273,12 +267,12 @@ strategies
       assimilate,
       !bstm |[ do 5; while(true); ]|,
       ?bstm* |[ Label ~x10 = new Label(thisCode);
-                ~<!x10>.define(thisCode);
+                ~<?x10>.define(thisCode);
                 thisCode.emitPushInt(5);
                 thisCode.emitPop(1);
                 thisCode.emitPushInt(1);
                 thisCode.emitPushInt(0);
-                thisCode.emitGotoIfGt( ~<!ExprName(x10)> ); ]|
+                thisCode.emitGotoIfGt( ~<?ExprName(x10)> ); ]|
     )
 
   test-method-decs = id
@@ -315,7 +309,7 @@ strategies
                 thisCode = thisMethod.getCode();
                 Variable ~x = thisCode.addLocal(Type.int_type, "m");
                 thisCode.pushScope();
-                thisCode.emitLoad( ~<!ExprName(x)> );
+                thisCode.emitLoad( ~<?ExprName(x)> );
                 thisCode.emitPop(1);
                 thisCode.emitReturn();
                 thisCode.popScope(); ]|
@@ -330,7 +324,6 @@ strategies
                 Variable ~var1 = thisCode.addLocal(Type.boolean_type, "n");
                 Variable ~var2 = thisCode.addLocal(Type.int_type, "m");
                 thisCode.pushScope();
-                thisCode.emitReturn();
                 thisCode.popScope(); ]|
     )
     /* We need reclassification here for reference type. */
@@ -343,7 +336,6 @@ strategies
                  thisMethod.initCode();
                  thisCode = thisMethod.getCode();
                  thisCode.pushScope();
-                 thisCode.emitReturn();
                  thisCode.popScope(); ]|
       )
     ; apply-test(!"Method declaration with modifier",

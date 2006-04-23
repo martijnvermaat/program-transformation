@@ -18,7 +18,7 @@ public class RTCG4Generated {
     ClassType co = GenPowerClass(n);
 
     // Output class file in human-readable format:
-    ClassTypeWriter.print(co, System.out, 0);
+    //ClassTypeWriter.print(co, System.out, 0);
 
     // Output class file to array:
     byte[] classFile = co.writeToArray();

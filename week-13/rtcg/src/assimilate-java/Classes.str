@@ -40,16 +40,26 @@ rules
 
   /**
    * Assimilate method declaration.
-   * todo: Generate return statement only for void methods or even only if it
-   *       is absent.
+   * If it is a void method, we make sure there is always a return generated.
    */
-  Assimilate(s) =
-    ?MethodDec(head, body)
-    ; !bstm* |[ ~*< <s> head >
-                thisCode.pushScope();
-                ~*< <s> body >
-                thisCode.emitReturn();
-                thisCode.popScope(); ]|
+  Assimilate(s) :
+    MethodDec(head@MethodDecHead(_, _, Void, _, _, _), body) ->
+    bstm* |[ ~*< <s> head >
+             thisCode.pushScope();
+             ~*< <s> body >
+             thisCode.emitReturn();
+             thisCode.popScope(); ]|
+
+  /**
+   * Assimilate method declaration.
+   */
+  Assimilate(s) :
+    MethodDec(head@MethodDecHead(_, _, t, _, _, _), body) ->
+    bstm* |[ ~*< <s> head >
+             thisCode.pushScope();
+             ~*< <s> body >
+             thisCode.popScope(); ]|
+    where not( <?Void> t )
 
   /**
    * Assimilate method declaration head.
@@ -165,7 +175,7 @@ strategies
    */
   assimilate-method-param :
     Param(_, type, Id(name)) ->
-    bstm* |[ Variable var = thisCode.addLocal( ~vartype, ~varstring ); ]|
+    bstm* |[ Variable ~var = thisCode.addLocal( ~vartype, ~varstring ); ]|
     where   !Id( <declare-local-var(|name)> ) => var
           ; !Lit(String([Chars(name)]))       => varstring
           ; <assimilate-type> type            => vartype
