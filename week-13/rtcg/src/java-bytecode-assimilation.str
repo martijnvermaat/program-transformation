@@ -120,3 +120,15 @@ strategies
   assimilate-anti-quote :
     EscapeFromStm(bstms) -> bstms'
     where <alltd(assimilate-quotes)> bstms => bstms'
+
+  /**
+   * Assimilate integer meta expression.
+   */
+  assimilate-anti-quote :
+    JavaInt(e) -> bstm* |[ thisCode.emitPushInt( e ); ]|
+
+  /**
+   * Assimilate double meta expression.
+   */
+  assimilate-anti-quote :
+    JavaDouble(e) -> bstm* |[ thisCode.emitPushDouble( e ); ]|

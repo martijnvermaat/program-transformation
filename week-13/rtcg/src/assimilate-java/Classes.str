@@ -118,7 +118,7 @@ strategies
   /**
    * Generate a method signature from parameters and return type.
    * Example:
-   *   ([Param(_, Boolean, _), Param(_, Int, _)], void) -> "(ZI)V"
+   *   ([Param(_, Boolean, _), Param(_, Int, _)], Void) -> "(ZI)V"
    */
   assimilate-method-sig = 
     ?(params, return)
@@ -130,11 +130,10 @@ strategies
     ; !bstm* |[ thisMethod.setSignature( ~<id> ); ]|
 
   /**
-   * Get a string with type descriptors separated by commas.
+   * Get a string with type descriptors.
    */
   process-method-sig-params =
     map(get-parameter-type ; assimilate-descriptor)
-    ; separate-by(|",")
     ; concat-strings
 
   /**

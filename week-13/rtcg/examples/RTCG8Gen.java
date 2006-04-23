@@ -153,63 +153,57 @@ public class RTCG8Gen {
 
   // Given a SparseMatrix B, generate code to compute A*B in R for any A
   // Build: public static void sparseMultB(double[][] A, double[][] R)
-  // in class object co
 
-  private static void sparseMultGen(ClassType co, String name,
+    private static void sparseMultGen(ClassType thisClass, String name,
 				    int aRows, int aCols, SparseMatrix B) {
 
-    Method mo = co.addMethod(name);
-    mo.setSignature("([[D[[D)V");
-    mo.setModifiers(Access.PUBLIC | Access.STATIC);
-    mo.initCode();
-    CodeAttr jvmg = mo.getCode();
-    Scope scope = mo.pushScope();
-    Type double1D_type = new ArrayType(Type.double_type);
-    Type double2D_type = new ArrayType(double1D_type);
-    // The generated method's parameters: double[][] A, double[][] R
-    Variable varA = scope.addVariable(jvmg, double2D_type, "A");
-    Variable varR = scope.addVariable(jvmg, double2D_type, "R");
-    Variable varAi = scope.addVariable(jvmg, double1D_type, "Ai");
-    Variable varRi = scope.addVariable(jvmg, double1D_type, "Ri");
-    Variable vari = scope.addVariable(jvmg, Type.int_type, "i");
-    jvmg.emitPushInt(0);
-    jvmg.emitStore(vari);			   // i = 0
-    Label loop = new Label(jvmg);
-    loop.define(jvmg);                             // do {
-    jvmg.emitLoad(varA);
-    jvmg.emitLoad(vari);
-    jvmg.emitArrayLoad(double1D_type);
-    jvmg.emitStore(varAi);                         // Ai = A[i]
-    jvmg.emitLoad(varR);
-    jvmg.emitLoad(vari);
-    jvmg.emitArrayLoad(double1D_type);
-    jvmg.emitStore(varRi);                         // Ri = R[i]
-    for (int j=0; j<B.cols; j++) {
-      jvmg.emitLoad(varRi);                        // Load Ri
-      jvmg.emitPushInt(j); 
-      jvmg.emitPushDouble(0.0);                    // sum = 0.0
-      Iterator iter = B.getCol(j).iterator();
-      while (iter.hasNext()) {
-        final NonZero nz = (NonZero)iter.next();
-        jvmg.emitPushDouble(nz.Bkj);               // load B[k][j]
-        jvmg.emitLoad(varAi);                      // load A[i]
-        jvmg.emitPushInt(nz.k);
-        jvmg.emitArrayLoad(Type.double_type);      // load A[i][k]
-        jvmg.emitMul();                            // prod = A[i][k]*B[k][j]
-        jvmg.emitAdd('D');                         // sum += prod
-      }
-      jvmg.emitArrayStore(Type.double_type);       // R[i][j] = sum
+        genmethod |[
+            public static void sparseMultB(double[][] A, double[][] R) {
+
+                double[] Ai;
+                double[] Ri;
+                int i;
+
+                i = 0;
+
+                do {
+
+                    Ai = A[i];
+                    Ri = R[i];
+
+                    #genbstms |[
+
+                        for (int j=0; j<B.cols; j++) {
+
+                            genbstms |[
+                                double sum;
+                                sum = 0.0;
+                                ]|;
+
+                            Iterator iter = B.getCol(j).iterator();
+                            while (iter.hasNext()) {
+                                final NonZero nz = (NonZero)iter.next();
+                                genbstms |[
+                                    sum = sum + #double[nz.Bkj] * Ai[ #int[nz.k] ];
+                                    ]|;
+                            }
+
+                            genbstms |[
+                                Ri[ #int[j] ] = sum;
+                                ]|;
+
+                        }
+
+                        ]|;
+
+                    i = i + 1;
+
+                } while (i < Rows);
+
+            }
+            ]|;
+
     }
-    jvmg.emitLoad(vari);
-    jvmg.emitPushInt(1);
-    jvmg.emitAdd('I');
-    jvmg.emitStore(vari);                          // i++
-    jvmg.emitLoad(vari);
-    jvmg.emitPushInt(aRows); 
-    jvmg.emitGotoIfLt(loop);                       // } while (i<aRows);
-    jvmg.emitReturn(); 
-    mo.popScope();
-  }
 
   // A SparseMatrix has a dimension, and an array of the NonZeros in
   // each of B's columns

@@ -34,6 +34,10 @@ rules
     ; foldr(!"", conc-strings)
     ; <concat-strings> ["L", <id>, ";"]
 
+  assimilate-descriptor =
+    ?ArrayType(t)
+    ; <concat-strings> ["[", <assimilate-descriptor> t ]
+
   assimilate-type : Boolean -> e |[ Type.boolean_type ]|
   assimilate-type : Byte    -> e |[ Type.byte_type    ]|
   assimilate-type : Short   -> e |[ Type.short_type   ]|
@@ -43,15 +47,16 @@ rules
   assimilate-type : Float   -> e |[ Type.float_type   ]|
   assimilate-type : Double  -> e |[ Type.double_type  ]|
 
-  /**
-   * todo: Array types?
-   */
   assimilate-type =
     (?ClassType(_, _) + ?InterfaceType(_, _))
     ; collect(is-string)
     ; separate-by(|".")
     ; foldr(!"", conc-strings)
     ; !e |[ new ObjectType( ~<!Lit(String([Chars(<id>)]))> ) ]|
+
+  assimilate-type :
+    ArrayType(t) -> e |[ new ArrayType( e ) ]|
+    where <assimilate-type> t => e
 
   assimilate-operator : "Plus"  -> Id("emitAdd")
   assimilate-operator : "Mul"   -> Id("emitMul")

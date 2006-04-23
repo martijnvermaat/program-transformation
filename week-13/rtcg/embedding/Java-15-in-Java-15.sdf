@@ -15,5 +15,9 @@ exports
     "#genbstms" "|[" BlockStm* "]|" ";" -> JavaStm {cons("EscapeFromStm")}
 
     "#genmethod" "|[" BlockStm* "]|" ";" -> JavaMethodDec {cons("EscapeFromStm")}
- 
+
+    "#int[" Expr "]" -> JavaExpr {cons("JavaInt")}
+
+    "#double[" Expr "]" -> JavaExpr {cons("JavaDouble")}
+
     "#var[" JavaId "]" -> Id {cons("MetaVar")}

@@ -318,7 +318,7 @@ strategies
       assimilate,
       !class-body-dec |[ int test(boolean n, int m) { } ]|,
       ?bstm* |[ thisMethod = thisClass.addMethod("test");
-                thisMethod.setSignature("(Z,I)I");
+                thisMethod.setSignature("(ZI)I");
                 thisMethod.initCode();
                 thisCode = thisMethod.getCode();
                 Variable ~var1 = thisCode.addLocal(Type.boolean_type, "n");
@@ -338,6 +338,18 @@ strategies
                  thisCode.pushScope();
                  thisCode.popScope(); ]|
       )
+    ; apply-and-check(!"Method declaration with array parameters",
+      assimilate,
+      !class-body-dec |[ int test(boolean[] n, int[][] m) { } ]|,
+      ?bstm* |[ thisMethod = thisClass.addMethod("test");
+                thisMethod.setSignature("([Z[[I)I");
+                thisMethod.initCode();
+                thisCode = thisMethod.getCode();
+                Variable ~var61 = thisCode.addLocal(new ArrayType(Type.boolean_type), "n");
+                Variable ~var62 = thisCode.addLocal(new ArrayType(new ArrayType(Type.int_type)), "m");
+                thisCode.pushScope();
+                thisCode.popScope(); ]|
+    )
     ; apply-test(!"Method declaration with modifier",
       assimilate,
       !class-body-dec |[ public void hoi() { } ]|,
