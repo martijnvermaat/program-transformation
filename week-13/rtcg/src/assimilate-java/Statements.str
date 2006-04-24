@@ -71,9 +71,9 @@ rules
   assimilate-local-var-dec(|type) :
     VarDec(Id(name)) ->
     bstm* |[ Variable ~var = thisCode.addLocal( ~vartype, ~varstring ); ]|
-    where   !Id( <declare-local-var(|name)> ) => var
-          ; !Lit(String([Chars(name)]))       => varstring
-          ; <assimilate-type> type            => vartype
+    where   !Id( <declare-local-var(|name, type)> ) => var
+          ; <assimilate-type> type                  => vartype
+          ; !Lit(String([Chars(name)]))             => varstring
 
   /**
    * Assimilate local variable declaration with assignment.

@@ -68,9 +68,16 @@ strategies
   /**
    * Generate new name for local variable and add rewrite rule for it. New
    * name is returned.
+   * If the type is an array type we also add an ArrayType rule for this
+   * variable which we use in array lookups.
    */
-  declare-local-var(|name) =
-    <newname> "var" => var
+  declare-local-var(|name, type) =
+    if <?ArrayType(t)> type then
+      rules (
+        ArrayType : name -> t
+      )
+    end
+    ; <newname> "var" => var
     ; rules (
         LocalVar : name -> var
       )

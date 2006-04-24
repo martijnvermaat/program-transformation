@@ -175,6 +175,6 @@ strategies
   assimilate-method-param :
     Param(_, type, Id(name)) ->
     bstm* |[ Variable ~var = thisCode.addLocal( ~vartype, ~varstring ); ]|
-    where   !Id( <declare-local-var(|name)> ) => var
-          ; !Lit(String([Chars(name)]))       => varstring
-          ; <assimilate-type> type            => vartype
+    where   !Id( <declare-local-var(|name, type)> ) => var
+          ; <assimilate-type> type                  => vartype
+          ; !Lit(String([Chars(name)]))             => varstring

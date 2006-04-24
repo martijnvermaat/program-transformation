@@ -42,6 +42,33 @@ strategies
       !e |[ false ]|,
       !bstm* |[ thisCode.emitPushInt(0); ]|
     )
+    ; apply-test(!"Simple array lookup",
+      assimilate,
+      rules ( LocalVar : "var341" -> "var_0"
+              ArrayType : "var341" -> Double )
+      ; !e |[ var341[3] ]|,
+      !bstm* |[ thisCode.emitLoad(var_0);
+                thisCode.emitPushInt(3);
+                thisCode.emitArrayLoad(Type.double_type); ]|
+    )
+    ; apply-test(!"Simple array lookup",
+      assimilate,
+      rules ( LocalVar : "var348" -> "var_0"
+              ArrayType : "var348" -> ArrayType(Int) )
+      ; !e |[ var348[7] ]|,
+      !bstm* |[ thisCode.emitLoad(var_0);
+                thisCode.emitPushInt(7);
+                thisCode.emitArrayLoad(new ArrayType(Type.int_type)); ]|
+    )
+    ; apply-test(!"Simple array lookup (field version)",
+      assimilate,
+      rules ( LocalVar : "var358" -> "var_0"
+              ArrayType : "var358" -> ArrayType(Int) )
+      ; !ArrayAccess(Field(Id("var358")), Lit(Deci("7"))),
+      !bstm* |[ thisCode.emitLoad(var_0);
+                thisCode.emitPushInt(7);
+                thisCode.emitArrayLoad(new ArrayType(Type.int_type)); ]|
+    )
     ; apply-test(!"Simple literal addition",
       assimilate,
       !e |[ 4 + 7 ]|,
@@ -230,6 +257,33 @@ strategies
       !bstm |[ { int n; n; } ]|,
       ?bstm* |[ Variable ~x2 = thisCode.addLocal(Type.int_type, "n");
                 thisCode.emitLoad( ~<?ExprName(x2)> );
+                thisCode.emitPop(1); ]|
+    )
+    ; apply-and-check(!"Local array variable declaration and use",
+      assimilate,
+      !bstm |[ { int[] n; n[3]; } ]|,
+      ?bstm* |[ Variable ~x12 = thisCode.addLocal(new ArrayType(Type.int_type), "n");
+                thisCode.emitLoad( ~<?ExprName(x12)> );
+                thisCode.emitPushInt(3);
+                thisCode.emitArrayLoad(Type.int_type);
+                thisCode.emitPop(1); ]|
+    )
+    ; apply-and-check(!"Local array variable declaration and use",
+      assimilate,
+      !bstm |[ { double[][] n; n[3]; } ]|,
+      ?bstm* |[ Variable ~x13 = thisCode.addLocal(new ArrayType(new ArrayType(Type.double_type)), "n");
+                thisCode.emitLoad( ~<?ExprName(x13)> );
+                thisCode.emitPushInt(3);
+                thisCode.emitArrayLoad(new ArrayType(Type.double_type));
+                thisCode.emitPop(1); ]|
+    )
+    ; apply-and-check(!"Local array field declaration and use",
+      assimilate,
+      !bstm |[ { double[][] n; ~bstm:ExprStm(ArrayAccess(Field(Id("n")), Lit(Deci("3")))) } ]|,
+      ?bstm* |[ Variable ~x123 = thisCode.addLocal(new ArrayType(new ArrayType(Type.double_type)), "n");
+                thisCode.emitLoad( ~<?ExprName(x123)> );
+                thisCode.emitPushInt(3);
+                thisCode.emitArrayLoad(new ArrayType(Type.double_type));
                 thisCode.emitPop(1); ]|
     )
     ; apply-test(!"Use of local variable",

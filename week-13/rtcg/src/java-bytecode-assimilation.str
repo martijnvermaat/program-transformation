@@ -37,7 +37,7 @@ rules
    */
   assimilate-in-method :
     MethodDec(head1, block1) -> MethodDec(head2, block2)
-    where {| LocalVar
+    where {| LocalVar, ArrayType
            : <alltd(declare-meta-param)> head1 => head2
            ; <alltd(assimilate-quotes)> block1 => block2
            |}

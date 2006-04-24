@@ -27,6 +27,21 @@ rules
     where !ExprName(Id( <LocalVar> x )) => var
 
   /**
+   * Assimilate array variable lookup.
+   * todo: We only consider array lookup directly on the variable. I saw no
+   *       other obvious solution to supporting array lookups for different
+   *       element types and more dimensions.
+   *       Implementing some type checking would be way too much work, and the
+   *       type checker in Dryad does not seem to help us here.
+   */
+  Assimilate(s) :
+    e |[ x [ e ] ]| -> bstm* |[ thisCode.emitLoad( ~var );
+                                ~*< <s> e >
+                                thisCode.emitArrayLoad( ~type ); ]|
+    where   !ExprName(Id( <LocalVar> x ))   => var
+          ; <ArrayType ; assimilate-type> x => type
+
+  /**
    * Assimilate post-increment of local variable.
    */
   Assimilate(s) :
@@ -161,3 +176,14 @@ rules
                                         thisCode.emitDup();
                                         thisCode.emitStore( ~var ); ]|
     where !ExprName(Id( <LocalVar> x )) => var
+
+  /**
+   * Assimilate array field lookup.
+   */
+  Assimilate(s) :
+    ArrayAccess(Field(Id(x)), e) ->
+    bstm* |[ thisCode.emitLoad( ~var );
+             ~*< <s> e >
+             thisCode.emitArrayLoad( ~type ); ]|
+    where   !ExprName(Id( <LocalVar> x ))   => var
+          ; <ArrayType ; assimilate-type> x => type
