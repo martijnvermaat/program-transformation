@@ -3,7 +3,6 @@ imports
   libdryad
   Java-15-in-Java-15
   Java-EBlock
-  desugar-java/Statements
   assimilate-java/Classes
   assimilate-java/Statements
   assimilate-java/Expressions
@@ -74,6 +73,7 @@ rules
                 ClassType thisClass;
                 Method thisMethod;
                 CodeAttr thisCode;
+                Variable thisVar;
                 ~bstm*:<assimilate-embedding> cdec
                 ~className = thisClass;
               }
@@ -109,8 +109,8 @@ strategies
    */
   assimilate-embedding =
        assimilate-anti-quote
-    <+ repeat(Desugar)
-       ; Assimilate(assimilate-embedding)
+    <+ /* repeat(Desugar) ; */
+       Assimilate(assimilate-embedding)
     <+ debug(!"Cannot assimilate embedded Java: ")
        ; fail
 

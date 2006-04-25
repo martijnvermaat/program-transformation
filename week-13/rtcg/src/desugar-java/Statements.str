@@ -1,9 +1,0 @@
-module desugar-java/Statements
-
-rules
-
-  /**
-   * todo: Think of easy desugaring things like local variable declarations
-   *       with assignment, and += operator, etc.
-   */
-  Desugar : e |[ 34 ]| -> e |[ 35 ]| where fail

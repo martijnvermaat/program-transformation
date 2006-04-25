@@ -462,11 +462,6 @@ strategies
 
   test-class-decs = id
 
-    ; test-classdec(
-        id /* todo: Reminder for other testcall, remove later. */
-      | "Simple class declaration"
-      , type-dec |[ class Test1 { } ]|
-      )
     ; test-classdec(|"Simple class declaration"
       , type-dec |[ class Test2 { } ]|
       , bstm* |[ thisClass = new ClassType("Test2");
@@ -489,7 +484,50 @@ strategies
       , bstm* |[ thisClass = new ClassType("Test2");
                  thisClass.setSuper("java.lang.String"); ]|
       )
-    /* todo: Testing classes with methods. */
+    ; test-classdec(|"Class declaration with interface"
+      , type-dec |[ class Test2 implements java.lang.String { } ]|
+      , bstm* |[ thisClass = new ClassType("Test2");
+                 thisClass.setSuper("java.lang.Object");
+                 thisClass.addInterface(new ClassType("java.lang.String")); ]|
+      )
+    ; test-classdec(|"Class declaration with interfaces"
+      , type-dec |[ class Test2 implements java.lang.String, java.lang.Object { } ]|
+      , bstm* |[ thisClass = new ClassType("Test2");
+                 thisClass.setSuper("java.lang.Object");
+                 thisClass.addInterface(new ClassType("java.lang.String"));
+                 thisClass.addInterface(new ClassType("java.lang.Object")); ]|
+      )
+    ; test-classdec(
+        ?bstm* |[ thisClass = new ClassType("Test2");
+                  thisClass.setSuper("java.lang.Object");
+                  thisMethod = thisClass.addMethod("<init>", new Type[] { Type.int_type }, Type.void_type, 0);
+                  thisMethod.setModifiers(Access.PUBLIC | 0);
+                  thisMethod.initCode();
+                  thisCode = thisMethod.getCode();
+                  thisVar = thisCode.addLocal(thisClass, "this");
+                  Variable ~x634 = thisCode.addLocal(Type.int_type, "n");
+                  thisCode.pushScope();
+                  thisCode.emitLoad(thisVar);
+                  thisCode.emitInvokeSpecial(ClassType.make("java.lang.Object").getMethod("<init>", new Type[] {}));
+                  thisCode.emitPushInt(4);
+                  thisCode.emitPop(1);
+                  thisCode.emitReturn();
+                  thisCode.popScope(); ]|
+        |"Simple class declaration with constructor"
+      , type-dec |[ class Test2 { public Test2(int n) { 4; } } ]|
+      )
+    ; test-classdec(|"Class declaration with method"
+      , type-dec |[ class Test { void hoi() {} } ]|
+      , bstm* |[ thisClass = new ClassType("Test");
+                 thisClass.setSuper("java.lang.Object");
+                 thisMethod = thisClass.addMethod("hoi");
+                 thisMethod.setSignature("()V");
+                 thisMethod.initCode();
+                 thisCode = thisMethod.getCode();
+                 thisCode.pushScope();
+                 thisCode.emitReturn();
+                 thisCode.popScope(); ]|
+      )
 
 strategies
 

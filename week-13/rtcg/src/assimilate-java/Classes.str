@@ -22,14 +22,15 @@ rules
 
   /**
    * Assimilate class declaration head.
-   * todo: Annotations, type parameters, interfaces.
+   * todo: Annotations, type parameters.
    * todo: Should we generate empty constructor if none is given?
    */
   Assimilate(s) =
     ?ClassDecHead(mods, name, type-params, super, interfaces)
-    ; <concat> [ <assimilate-class-name>      name
-               , <assimilate-class-modifiers> mods
-               , <assimilate-class-super>     super ]
+    ; <concat> [ <assimilate-class-name>       name
+               , <assimilate-class-modifiers>  mods
+               , <assimilate-class-super>      super
+               , <assimilate-class-interfaces> interfaces ]
 
   /**
    * Assimilate class declaration body.
@@ -37,6 +38,16 @@ rules
   Assimilate(s) =
     ?ClassBody(decs)
     ; <mapconcat(s)> decs
+
+  /**
+   * Assimilate constructor declaration.
+   */
+  Assimilate(s) :
+    ConstrDec(head, body) -> bstm* |[ ~*< <s> head >
+                                      thisCode.pushScope();
+                                      ~*< <s> body >
+                                      thisCode.emitReturn();
+                                      thisCode.popScope(); ]|
 
   /**
    * Assimilate method declaration.
@@ -60,6 +71,27 @@ rules
              ~*< <s> body >
              thisCode.popScope(); ]|
     where not( <?Void> t )
+
+  /**
+   * Assimilate constructor declaration head.
+   * todo: Annotations, type parameters, throws.
+   */
+  Assimilate(s) =
+    ?ConstrDecHead(mods, type-params, name, params, throws)
+    ; <concat> [ <assimilate-constr-head>      params
+               , <assimilate-constr-modifiers> mods
+               , <generate-constr-init>
+               , <assimilate-constr-params>    params ]
+
+  /**
+   * todo: Constructor invocations.
+   */
+  Assimilate(s) :
+    ConstrBody(_, bstm*) -> bstm* |[ thisCode.emitLoad(thisVar);
+                                     thisCode.emitInvokeSpecial(
+                                       ClassType.make("java.lang.Object")
+                                         .getMethod("<init>", new Type[] {}));
+                                     ~*< <mapconcat(s)> bstm* > ]|
 
   /**
    * Assimilate method declaration head.
@@ -109,6 +141,51 @@ strategies
       ; foldr(!"", conc-strings)
     end
     ; !bstm* |[ thisClass.setSuper( ~<!Lit(String([Chars(<id>)]))> ); ]|
+
+  /**
+   * Generate statements setting interfaces implemented by the class.
+   */
+  assimilate-class-interfaces =
+    if ?None then
+      ![]
+    else
+      ?Some(ImplementsDec( <mapconcat(assimilate-class-interface)> ))
+    end
+
+  assimilate-class-interface =
+    collect(is-string)
+    ; separate-by(|".")
+    ; foldr(!"", conc-strings)
+    ; !bstm* |[ thisClass.addInterface(
+                  new ClassType( ~<!Lit(String([Chars(<id>)]))> )); ]|
+
+  assimilate-constr-head =
+    map(assimilate-constr-param)
+    ; !bstm* |[ thisMethod = thisClass.addMethod("<init>",
+                                                 new Type[] { ~*<id> },
+                                                 Type.void_type,
+                                                 0); ]|
+
+  /**
+   * Generate type constructor from parameter.
+   */
+  assimilate-constr-param =
+    get-parameter-type
+    ; assimilate-type
+
+  assimilate-constr-modifiers = 
+    assimilate-method-modifiers
+
+  generate-constr-init =
+    generate-method-init
+
+  /**
+   * Generate statements for declaring method parameters and include 'this'
+   * reference.
+   */
+  assimilate-constr-params =
+    !bstm* |[ thisVar = thisCode.addLocal(thisClass, "this");
+              ~*<mapconcat(assimilate-method-param)> ]|
 
   assimilate-method-name =
     ?Id(name)
