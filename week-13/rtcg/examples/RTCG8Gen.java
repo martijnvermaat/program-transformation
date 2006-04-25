@@ -13,7 +13,7 @@ import gnu.bytecode.*;
 import java.io.*;               // IOException
 import java.util.*;             // Random, ArrayList etc
 
-public class RTCG8Gen {
+public class RTCG8Generated {
   public static void main(String[] args) 
     throws IOException, NoSuchMethodException, IllegalAccessException, 
            java.lang.reflect.InvocationTargetException {
@@ -171,12 +171,13 @@ public class RTCG8Gen {
                     Ai = A[i];
                     Ri = R[i];
 
+                    double sum;
+
                     #genbstms |[
 
                         for (int j=0; j<B.cols; j++) {
 
                             genbstms |[
-                                double sum;
                                 sum = 0.0;
                                 ]|;
 
@@ -198,7 +199,7 @@ public class RTCG8Gen {
 
                     i = i + 1;
 
-                } while (i < Rows);
+                } while (i < #int[aRows]);
 
             }
             ]|;

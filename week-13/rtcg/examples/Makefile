@@ -41,4 +41,6 @@ RUNARGS_RTCG3Generated = 800000
 
 RUNARGS_RTCG7Generated = 2000 500
 
+RUNARGS_RTCG8Generated = 80 80 200 500 100
+
 test : RTCG2Generated.class RTCG3Generated.class RTCG4Generated.class

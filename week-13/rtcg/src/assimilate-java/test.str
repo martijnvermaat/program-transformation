@@ -32,6 +32,11 @@ strategies
       !e |[ 3 ]|,
       !bstm* |[ thisCode.emitPushInt(3); ]|
     )
+    ; apply-test(!"Simple double int",
+      assimilate,
+      !e |[ 4.5 ]|,
+      !bstm* |[ thisCode.emitPushDouble(4.5); ]|
+    )
     ; apply-test(!"Simple literal boolean",
       assimilate,
       !e |[ true ]|,
@@ -183,6 +188,19 @@ strategies
                 thisCode.emitAdd();
                 thisCode.emitDup();
                 thisCode.emitStore(var_0); ]|
+    )
+    ; apply-test(!"Simple array assignment",
+      assimilate,
+      rules ( LocalVar : "var5411" -> "var_0"
+              ArrayType : "var5411" -> Int )
+      ; !e |[ var5411[3] = 4 ]|,
+      !bstm* |[ thisCode.emitPushInt(4);
+                thisCode.emitDup();
+                thisCode.emitLoad(var_0);
+                thisCode.emitSwap();
+                thisCode.emitPushInt(3);
+                thisCode.emitSwap();
+                thisCode.emitArrayStore(Type.int_type); ]|
     )
     ; apply-test(!"Simple gt check",
       assimilate,

@@ -8,7 +8,14 @@ rules
    * Assimilate decimal constant.
    */
   Assimilate(s) :
-    e |[ i ]| -> bstm* |[ thisCode.emitPushInt(i); ]|
+    e |[ i ]| -> bstm* |[ thisCode.emitPushInt( i ); ]|
+
+  /**
+   * Assimilate double constant. We only support doubles, so we treat floats
+   * like doubles.
+   */
+  Assimilate(s) :
+    Lit(Float(f)) -> bstm* |[ thisCode.emitPushDouble( ~<!Lit(Float(f))> ); ]|
 
   /**
    * Assimilate boolean constant.
@@ -123,6 +130,27 @@ rules
                               thisCode.emitDup();
                               thisCode.emitStore( ~var ); ]|
     where !ExprName(Id( <LocalVar> x )) => var
+
+  /**
+   * Assimilate array assignment.
+   * The trouble is that we need the assigned value to leave it on the stack
+   * after the assignment, but the ArrayStore expects the array reference and
+   * index under it, so a simple duplicate will not do it.
+   * This is a quick hack duplicating the value and than propagating it to the
+   * top of the stack. An emitDup(size, 2) would also be possible, because we
+   * know the size of the value from the type of the array elements. The code
+   * would be even uglier though.
+   */
+  Assimilate(s) :
+    e |[ x [ e1 ] = e2 ]| -> bstm* |[ ~*< <s> e2 >
+                                      thisCode.emitDup();
+                                      thisCode.emitLoad( ~var );
+                                      thisCode.emitSwap();
+                                      ~*< <s> e1 >
+                                      thisCode.emitSwap();
+                                      thisCode.emitArrayStore( ~type ); ]|
+    where   !ExprName(Id( <LocalVar> x ))   => var
+          ; <ArrayType ; assimilate-type> x => type
 
 rules
 
